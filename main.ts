@@ -30,7 +30,7 @@ const camera = new THREE.PerspectiveCamera(
   /*fov=*/ 60,
   /*aspect=*/ window.innerWidth / window.innerHeight,
   /*near=*/ 0.001,
-  /*far=*/ 100
+  /*far=*/ 100,
 );
 
 // Objects
@@ -41,8 +41,8 @@ scene.add(spot);
 spot.add(
   new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  )
+    new THREE.MeshBasicMaterial({ color: 0xffffff }),
+  ),
 );
 spot.position.x = -20;
 spot.position.y = 20;
@@ -55,7 +55,7 @@ camera_placeholder.position.z = 5;
 //camera_placeholder.rotateX(90);
 const camera_representation = new THREE.Mesh(
   new THREE.ConeGeometry(0.2, 1),
-  new THREE.MeshStandardMaterial({ color: 0x996666 })
+  new THREE.MeshStandardMaterial({ color: 0x996666 }),
 );
 camera_representation.rotateX(Math.PI * 0.5);
 camera_placeholder.add(camera_representation);
@@ -81,11 +81,11 @@ function renderLoop(timestamp: number) {
   average_duration = THREE.MathUtils.lerp(
     average_duration,
     (timestamp - previous_timestamp) / 1000,
-    0.1
+    0.1,
   );
 
   document.getElementById("Fps")!.textContent =
-    average_duration.toString() + " ms";
+    (1.0 / average_duration).toFixed(1).toString() + " fps";
 
   renderer.autoClear = false;
   renderer.clear();
