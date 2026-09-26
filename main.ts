@@ -1,9 +1,9 @@
 import * as THREE from "three";
 
 //import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-//import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
+import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from './sky';
-import { LoadGround } from './gltf';
+import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk } from './gltf';
 
 const debug_mode = false;
 
@@ -56,7 +56,7 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
   /*fov=*/ 60,
   /*aspect=*/ window.innerWidth / window.innerHeight,
-  /*near=*/ 0.001,
+  /*near=*/ 0.01,
   /*far=*/ 100,
 );
 
@@ -75,11 +75,8 @@ let debug_stop = false;
 // Objects
 const sky_scene = new THREE.Scene();
 const sky_object = CreateSky(sky_scene, debug_mode);
-const sky_render_target = new THREE.WebGLCubeRenderTarget( 256, { type: THREE.HalfFloatType } );
-const sky_camera = new THREE.CubeCamera( 1, 1000, sky_render_target );
 
 const scene = new THREE.Scene();
-scene.environment = sky_render_target.texture;
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 const sun_light = new THREE.DirectionalLight(0xffffff, 3);
@@ -143,6 +140,10 @@ boxz.position.y = 0;
 boxz.position.z = 2;
 
 LoadGround(scene);
+LoadHouse(scene);
+LoadTree(scene);
+LoadWall(scene);
+LoadWalk(scene);
 
 let playing = false;
 let finished = false;
@@ -155,10 +156,10 @@ let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
 
-/*new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
+new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = texture;
-});*/
+});
 
 let marcel_pousse_up = false;
 let marcel_pousse_down = false;
@@ -568,7 +569,6 @@ function renderLoop(timestamp: number) {
   // pre_post_effect.PreRender(renderer, camera);
 
   renderer.render(sky_scene, camera);
-  sky_camera.update(renderer, sky_scene);
 
   renderer.render(scene, camera);
   // pre_post_effect.PostRender(renderer, camera);

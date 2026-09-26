@@ -17,6 +17,60 @@ export function LoadGround(scene: THREE.Object3D) {
   );
 }
 
+export function LoadHouse(scene: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/house.glb",
+    function (gltf) {
+      gltf.scene.traverse(function (object) {
+        const geometry = (object as THREE.Mesh).geometry;
+        if (geometry && geometry.attributes.color_1) {
+          geometry.setAttribute("color", geometry.attributes.color_1);
+        }
+      });
+      scene.add(gltf.scene);
+    },
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
+export function LoadTree(scene: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/tree.glb",
+    function (gltf) {
+      scene.add(gltf.scene);
+    },
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
+export function LoadWalk(scene: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/walk.glb",
+    function (gltf) {
+      scene.add(gltf.scene);
+    },
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
+export function LoadWall(scene: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/wall.glb",
+    function (gltf) {
+      scene.add(gltf.scene);
+    },
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
 export function LoadTrain(train: THREE.Object3D) {
   loader.load(
     // resource URL
