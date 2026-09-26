@@ -2,7 +2,6 @@
   "compilerOptions": {
     "rootDir": "./",
     "outDir": "./dist",
-    "module": "ES6",
     "target": "ES6",
     "strict": true,
     "allowJs": false,
@@ -12,8 +11,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
-    "sourceMap": true,
-    "moduleResolution": "node"
+    "moduleResolution": "bundler"
   },
   "exclude": ["**/dist/**"]
 }

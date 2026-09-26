@@ -1,15 +1,16 @@
 {
+  "name": "soleil-de-plomb",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "dev": "webpack serve --config webpack.dev.js"
   },
   "devDependencies": {
-    "@types/three": "^0.151.0",
-    "three": "^0.152.2",
-    "ts-loader": "^9.4.2",
-    "typescript": "^5.0.4",
-    "webpack": "^5.81.0",
-    "webpack-cli": "^5.0.2",
-    "webpack-dev-server": "^4.13.3"
+    "@types/three": "^0.185.1",
+    "three": "^0.185.1",
+    "ts-loader": "^9.6.2",
+    "typescript": "6.0.3",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1",
+    "webpack-dev-server": "^6.0.0"
   }
 }
