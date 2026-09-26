@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { Noise3D } from "./utils";
+// import { Noise3D } from "./utils";
 
 const loader = new GLTFLoader();
 
