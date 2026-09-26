@@ -1,13 +1,13 @@
 import * as THREE from "three";
 
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+// import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
-import { CreateSky, UpdateSky } from './sky';
+import { CreateSky, UpdateSky } from "./sky";
 
 const debug_mode = false;
 
-function CreateRenderer() {
-  let canvas = document.createElement("canvas");
+let canvas = document.createElement("canvas");
+function CreateRenderer(canvas: HTMLCanvasElement) {
   var context = canvas.getContext("webgl2");
   if (context) {
     return new THREE.WebGLRenderer({
@@ -24,7 +24,27 @@ function CreateRenderer() {
   }
 }
 
-const renderer: THREE.WebGLRenderer = CreateRenderer();
+canvas.addEventListener("click", async () => {
+  if (!document.pointerLockElement) {
+    await canvas.requestPointerLock();
+  }
+});
+let pan = 0;
+let tilt = 0.2;
+function updatePosition(e: MouseEvent) {
+  pan -= e.movementX * 0.001;
+  tilt = Math.max(-Math.PI * 0.2, Math.min(Math.PI * 0.2, tilt + e.movementY * 0.001));
+}
+function lockChangeAlert() {
+  if (document.pointerLockElement === canvas) {
+    document.addEventListener("mousemove", updatePosition);
+  } else {
+    document.removeEventListener("mousemove", updatePosition);
+  }
+}
+document.addEventListener("pointerlockchange", lockChangeAlert);
+
+const renderer: THREE.WebGLRenderer = CreateRenderer(canvas);
 renderer.setPixelRatio(window.devicePixelRatio);
 
 // Environment
@@ -33,18 +53,6 @@ renderer.toneMappingExposure = 0.1;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
-  /*fov=*/ 60,
-  /*aspect=*/ window.innerWidth / window.innerHeight,
-  /*near=*/ 0.001,
-  /*far=*/ 100,
-);
-const camera_position = new THREE.PerspectiveCamera(
-  /*fov=*/ 60,
-  /*aspect=*/ window.innerWidth / window.innerHeight,
-  /*near=*/ 0.001,
-  /*far=*/ 100,
-);
-const debug_camera_position = new THREE.PerspectiveCamera(
   /*fov=*/ 60,
   /*aspect=*/ window.innerWidth / window.innerHeight,
   /*near=*/ 0.001,
@@ -61,8 +69,6 @@ audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
   sound.setVolume(0.2);
 });
 
-const controls = new OrbitControls(debug_camera_position, renderer.domElement);
-let debug_camera = false;
 let debug_stop = false;
 
 // Objects
@@ -81,12 +87,6 @@ spot.position.y = 20;
 spot.position.z = 20;
 const sky = CreateSky(scene, debug_mode);
 
-const camera_representation = new THREE.Mesh(
-  new THREE.ConeGeometry(0.2, 1),
-  new THREE.MeshStandardMaterial({ color: 0x996666 }),
-);
-scene.add(camera_representation);
-
 // Debug cube
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
@@ -97,14 +97,10 @@ box.position.x = 0;
 box.position.y = 2;
 box.position.z = 0;
 
-camera_position.position.x = 0;
-camera_position.position.y = 4;
-camera_position.position.z = 5;
-camera_position.lookAt(box.position);
-debug_camera_position.position.x = 10;
-debug_camera_position.position.y = 1;
-debug_camera_position.position.z = 20;
-debug_camera_position.lookAt(box.position);
+camera.position.x = 0;
+camera.position.y = 4;
+camera.position.z = 5;
+camera.lookAt(box.position);
 
 // Debug cube
 const boxx = new THREE.Mesh(
@@ -175,9 +171,7 @@ function onDocumentKeyDown(event: KeyboardEvent) {
     return;
   }
   var keyCode = event.key;
-  if (keyCode == "Shift") {
-    debug_camera = !debug_camera;
-  } else if (
+  if (
     keyCode == "ArrowUp" ||
     keyCode == "w" ||
     keyCode == "W" ||
@@ -339,7 +333,7 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     // Update player location
     let movement_forward = box.position.clone();
-    movement_forward.sub(camera_position.position);
+    movement_forward.sub(camera.position);
     movement_forward.y = 0;
     movement_forward.normalize();
     let movement_right = new THREE.Vector3(
@@ -365,17 +359,29 @@ function renderLoop(timestamp: number) {
       marcel_pousse.normalize();
       marcel_pousse.multiplyScalar(duration * 5);
       box.position.add(marcel_pousse);
+      box.lookAt(box.position.clone().add(marcel_pousse));
     }
-    box.lookAt(box.position.clone().add(movement_forward));
 
     // Update camera location
-    camera_position.lookAt(box.position);
-    let vec = camera_position.position;
-    vec.sub(box.position);
-    vec.y = 0;
-    vec.setLength(10);
-    vec.add(box.position);
-    camera_position.position.set(vec.x, box.position.y + 5, vec.z);
+    let camera_position = box.position
+      .clone()
+      .add(
+        new THREE.Vector3(0, 0, 10)
+          .applyAxisAngle(new THREE.Vector3(-1, 0, 0), tilt)
+          .applyAxisAngle(new THREE.Vector3(0, 1, 0), pan),
+      );
+    camera.position.set(
+      camera_position.x,
+      camera_position.y,
+      camera_position.z,
+    );
+    // let vec = camera.position;
+    // vec.sub(box.position);
+    // vec.y = 0;
+    // vec.setLength(10);
+    // vec.add(box.position);
+    // camera.position.set(vec.x, box.position.y + 5, vec.z);
+    camera.lookAt(box.position);
 
     time += duration;
   }
@@ -550,20 +556,6 @@ function renderLoop(timestamp: number) {
 
   document.getElementById("Fps")!.textContent =
     (1.0 / average_duration).toFixed(1).toString() + " fps";
-
-  if (debug_camera) {
-    controls.update();
-    debug_camera_position.getWorldPosition(camera.position);
-    debug_camera_position.getWorldQuaternion(camera.quaternion);
-    camera_position.getWorldPosition(camera_representation.position);
-    camera_position.getWorldQuaternion(camera_representation.quaternion);
-    camera_representation.rotateX(Math.PI * 0.5);
-    camera_representation.visible = true;
-  } else {
-    camera_position.getWorldPosition(camera.position);
-    camera_position.getWorldQuaternion(camera.quaternion);
-    camera_representation.visible = false;
-  }
 
   if (playing && !debug_stop) {
     // train.UpdateSmoke(duration, camera.quaternion);
