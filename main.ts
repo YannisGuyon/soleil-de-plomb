@@ -38,6 +38,18 @@ const camera = new THREE.PerspectiveCamera(
   /*near=*/ 0.001,
   /*far=*/ 100,
 );
+const camera_position = new THREE.PerspectiveCamera(
+  /*fov=*/ 60,
+  /*aspect=*/ window.innerWidth / window.innerHeight,
+  /*near=*/ 0.001,
+  /*far=*/ 100,
+);
+const debug_camera_position = new THREE.PerspectiveCamera(
+  /*fov=*/ 60,
+  /*aspect=*/ window.innerWidth / window.innerHeight,
+  /*near=*/ 0.001,
+  /*far=*/ 100,
+);
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
@@ -49,7 +61,7 @@ audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
   sound.setVolume(0.2);
 });
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(debug_camera_position, renderer.domElement);
 let debug_camera = false;
 let debug_stop = false;
 
@@ -69,28 +81,60 @@ spot.position.y = 20;
 spot.position.z = 20;
 const sky = CreateSky(scene, debug_mode);
 
-const camera_placeholder = new THREE.Object3D();
-camera_placeholder.position.y = 4;
-camera_placeholder.position.z = 5;
 const camera_representation = new THREE.Mesh(
   new THREE.ConeGeometry(0.2, 1),
   new THREE.MeshStandardMaterial({ color: 0x996666 }),
 );
-camera_representation.rotateX(Math.PI * 0.5);
-camera_placeholder.add(camera_representation);
-scene.add(camera_placeholder);
+scene.add(camera_representation);
 
 // Debug cube
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
+  new THREE.MeshStandardMaterial({ color: 0x000000 }),
 );
 scene.add(box);
 box.position.x = 0;
 box.position.y = 2;
 box.position.z = 0;
 
-camera_placeholder.lookAt(box.position);
+camera_position.position.x = 0;
+camera_position.position.y = 4;
+camera_position.position.z = 5;
+camera_position.lookAt(box.position);
+debug_camera_position.position.x = 10;
+debug_camera_position.position.y = 1;
+debug_camera_position.position.z = 20;
+debug_camera_position.lookAt(box.position);
+
+// Debug cube
+const boxx = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
+);
+scene.add(boxx);
+boxx.position.x = 2;
+boxx.position.y = 0;
+boxx.position.z = 0;
+
+// Debug cube
+const boxy = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
+);
+scene.add(boxy);
+boxy.position.x = 0;
+boxy.position.y = 2;
+boxy.position.z = 0;
+
+// Debug cube
+const boxz = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0x0000ff }),
+);
+scene.add(boxz);
+boxz.position.x = 0;
+boxz.position.y = 0;
+boxz.position.z = 2;
 
 // Ground
 const ground = new THREE.Mesh(
@@ -114,16 +158,15 @@ let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
 
-new HDRLoader()
-  .setPath("resources/IBL/")
-  .load(
-    "IBL.hdr",
-    function (texture: THREE.Texture<unknown, THREE.TextureEventMap> | null) {
-      if (!texture) return;
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = texture;
-    },
-  );
+new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = texture;
+});
+
+let marcel_pousse_up = false;
+let marcel_pousse_down = false;
+let marcel_pousse_left = false;
+let marcel_pousse_right = false;
 
 // Inputs
 document.addEventListener("keydown", onDocumentKeyDown, false);
@@ -134,16 +177,26 @@ function onDocumentKeyDown(event: KeyboardEvent) {
   var keyCode = event.key;
   if (keyCode == "Shift") {
     debug_camera = !debug_camera;
-    if (debug_camera) {
-      camera.position.x = 0;
-      camera.position.y = 1;
-      camera.position.z = 20;
-      camera.lookAt(box.position);
-    }
-  } else if (keyCode == "ArrowLeft") {
-    // player.StartMoveLeft();
-  } else if (keyCode == "ArrowRight") {
-    // player.StartMoveRight();
+  } else if (
+    keyCode == "ArrowUp" ||
+    keyCode == "w" ||
+    keyCode == "W" ||
+    keyCode == "z" ||
+    keyCode == "Z"
+  ) {
+    marcel_pousse_up = true;
+  } else if (keyCode == "ArrowDown" || keyCode == "s" || keyCode == "S") {
+    marcel_pousse_down = true;
+  } else if (
+    keyCode == "ArrowLeft" ||
+    keyCode == "a" ||
+    keyCode == "A" ||
+    keyCode == "q" ||
+    keyCode == "Q"
+  ) {
+    marcel_pousse_left = true;
+  } else if (keyCode == "ArrowRight" || keyCode == "d" || keyCode == "D") {
+    marcel_pousse_right = true;
   } else if (keyCode == " ") {
     debug_stop = !debug_stop;
     document.getElementById("Pause")!.style.display = debug_stop
@@ -158,12 +211,30 @@ function onDocumentKeyUp(event: KeyboardEvent) {
     return;
   }
   var keyCode = event.key;
-  if (keyCode == "ArrowLeft") {
+  if (
+    keyCode == "ArrowUp" ||
+    keyCode == "w" ||
+    keyCode == "W" ||
+    keyCode == "z" ||
+    keyCode == "Z"
+  ) {
     StartPlaying();
-    // player.EndMoveLeft();
-  } else if (keyCode == "ArrowRight") {
+    marcel_pousse_up = false;
+  } else if (keyCode == "ArrowDown" || keyCode == "s" || keyCode == "S") {
     StartPlaying();
-    // player.EndMoveRight();
+    marcel_pousse_down = false;
+  } else if (
+    keyCode == "ArrowLeft" ||
+    keyCode == "a" ||
+    keyCode == "A" ||
+    keyCode == "q" ||
+    keyCode == "Q"
+  ) {
+    StartPlaying();
+    marcel_pousse_left = false;
+  } else if (keyCode == "ArrowRight" || keyCode == "d" || keyCode == "D") {
+    StartPlaying();
+    marcel_pousse_right = false;
   }
 }
 
@@ -266,6 +337,29 @@ function renderLoop(timestamp: number) {
   }
 
   if (playing && !debug_stop && !finished) {
+    let marcel_pousse = new THREE.Vector3();
+    if (marcel_pousse_up) {
+      marcel_pousse.z -= 1;
+    }
+    if (marcel_pousse_down) {
+      marcel_pousse.z += 1;
+    }
+    if (marcel_pousse_left) {
+      marcel_pousse.x -= 1;
+    }
+    if (marcel_pousse_right) {
+      marcel_pousse.x += 1;
+    }
+    marcel_pousse.multiplyScalar(duration * 5);
+    box.position.add(marcel_pousse);
+
+    camera_position.lookAt(box.position);
+    let vec = camera_position.position;
+    vec.sub(box.position);
+    vec.setLength(5);
+    vec.add(box.position);
+    camera_position.position.set(vec.x, vec.y, vec.z);
+
     time += duration;
   }
   const day_progress = Math.max(0, Math.min(1, (time - 1) / 15));
@@ -442,15 +536,16 @@ function renderLoop(timestamp: number) {
 
   if (debug_camera) {
     controls.update();
+    debug_camera_position.getWorldPosition(camera.position);
+    debug_camera_position.getWorldQuaternion(camera.quaternion);
+    camera_position.getWorldPosition(camera_representation.position);
+    camera_position.getWorldQuaternion(camera_representation.quaternion);
+    camera_representation.rotateX(Math.PI * 0.5);
+    camera_representation.visible = true;
   } else {
-    if (gros_overlay_opacity > 0.95) {
-      camera_placeholder.getWorldPosition(camera.position);
-      camera_placeholder.getWorldQuaternion(camera.quaternion);
-    } else {
-      camera_representation.getWorldPosition(camera.position);
-      camera_representation.getWorldQuaternion(camera.quaternion);
-      camera.rotateX(Math.PI * 0.5);
-    }
+    camera_position.getWorldPosition(camera.position);
+    camera_position.getWorldQuaternion(camera.quaternion);
+    camera_representation.visible = false;
   }
 
   if (playing && !debug_stop) {
