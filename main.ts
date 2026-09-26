@@ -3,7 +3,15 @@ import * as THREE from "three";
 //import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from "./sky";
-import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk, LoadMarcel } from "./gltf";
+import {
+  LoadGround,
+  LoadHouse,
+  LoadTree,
+  LoadWall,
+  LoadBall,
+  LoadWalk,
+  LoadMarcel,
+} from "./gltf";
 import * as CANNON from "cannon-es";
 
 const debug_mode = false;
@@ -172,6 +180,8 @@ canvas.addEventListener("click", async () => {
     scene.add(ballMesh);
     balls.push(ballBody);
     ballMeshes.push(ballMesh);
+
+    LoadBall(ballMesh);
 
     const shootDirection = getShootDirection();
     ballBody.velocity.set(
