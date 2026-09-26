@@ -257,7 +257,7 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     time += duration;
   }
-  const factor = Math.max(0, Math.min(1, (time - 1) / 60));
+  const factor = Math.max(0, Math.min(1, (time - 1) / 3600));
   if (playing && !debug_stop && !finished) {
     // GameLoop(duration, factor);
 
