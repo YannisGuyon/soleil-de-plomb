@@ -3,6 +3,7 @@ import * as THREE from "three";
 //import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from "./sky";
+import { InitFire, UpdateFire } from "./fire";
 import {
   LoadGround,
   LoadHouse,
@@ -90,7 +91,7 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 const sun_light = new THREE.DirectionalLight(0xffffff, 3);
 sun_light.castShadow = true;
-sun_light.position.set( 10, 100, 0 );
+sun_light.position.set(10, 100, 0);
 sun_light.target.position.set(0, 0, 0);
 sun_light.shadow.mapSize.width = 2048;
 sun_light.shadow.mapSize.height = 2048;
@@ -150,6 +151,8 @@ const treeShape = new CANNON.Cylinder(1, 1, 10);
 const treeBody = new CANNON.Body({ mass: 0 });
 treeBody.addShape(treeShape);
 world.addBody(treeBody);
+
+InitFire(scene);
 
 // The shooting balls
 const ballShape = new CANNON.Cylinder(0.2, 0.2, 0.4);
@@ -404,6 +407,7 @@ function onWindowResize() {
 let previous_timestamp: null | number = null;
 let time = 0;
 let average_duration = 0.016;
+let marcel_is_unsafe_duration = 0;
 function renderLoop(timestamp: number) {
   requestAnimationFrame(renderLoop);
 
@@ -568,8 +572,11 @@ function renderLoop(timestamp: number) {
     raycaster.far = 100;
     const intersects = raycaster.intersectObjects(shadows_maker, true);
     const marcel_is_safe = intersects.length > 0;
-    if (!marcel_is_safe) {
-      console.log("Marcel is burning!");
+    UpdateFire(marcel.position, duration, marcel_is_safe);
+    if (marcel_is_safe) {
+      marcel_is_unsafe_duration = 0;
+    } else {
+      marcel_is_unsafe_duration += duration;
     }
 
     if (day_progress == 1) {
@@ -588,6 +595,12 @@ function renderLoop(timestamp: number) {
         end_message.textContent = "Death!";
         document.exitPointerLock();
       }
+    }
+    if (!finished && marcel_is_unsafe_duration > 3) {
+      finished = true;
+      success_screen.style.display = "block";
+      end_message.textContent = "Burnt!";
+      document.exitPointerLock();
     }
     // const damage = pre_post_effect.GetDamage();
     // if (damage > 0.0) {
