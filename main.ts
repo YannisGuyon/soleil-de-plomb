@@ -46,6 +46,16 @@ const camera = new THREE.PerspectiveCamera(
 // const planet_radius = 10;
 // const camera_distance = 5;
 
+const listener = new THREE.AudioListener();
+camera.add(listener);
+const sound = new THREE.Audio(listener);
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
+  sound.setBuffer(buffer);
+  sound.setLoop(true);
+  sound.setVolume(0.2);
+});
+
 const controls = new OrbitControls(camera, renderer.domElement);
 let debug_camera = false;
 let debug_stop = false;
@@ -82,7 +92,7 @@ scene.add(camera_placeholder);
 // Debug cube
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 })
+  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
 );
 scene.add(box);
 box.position.x = 0;
@@ -177,8 +187,7 @@ function onDocumentKeyUp(event: KeyboardEvent) {
 function StartPlaying() {
   if (!playing) {
     playing = true;
-    // const sound_element = document.getElementById("Sound")! as HTMLMediaElement;
-    // sound_element.play();
+    sound.play();
 
     // Kickstart trails
     // for (let i = 0; i < 1000; ++i) {
@@ -259,13 +268,6 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     // GameLoop(duration, factor);
 
-    const sound_element = document.getElementById("Sound")! as HTMLMediaElement;
-    sound_element.playbackRate = Math.max(1, Math.min(2, 1 + factor * 1));
-
-    const map_position = document.getElementById("MapPosition")!;
-    map_position.style.transform =
-      "rotate(" + (factor * 180 - 90).toString() + "deg)";
-
     if (factor == 1) {
       finished = true;
       encore_plus_gros_overlay.style.display = "block";
@@ -324,14 +326,12 @@ function renderLoop(timestamp: number) {
     //   ideal_to_tip.length(),
     //   ideal_camera_position.length(),
     // );
-
     // KeepWithin(
     //   camera_placeholder,
     //   ideal_camera_position,
     //   ideal_to_tip.length() * 0.8,
     //   ideal_camera_position.length(),
     // );
-
     // camera_placeholder.setRotationFromQuaternion(ideal_camera_rotation);
     // camera_placeholder.setRotationFromQuaternion(
     //   new THREE.Quaternion().slerpQuaternions(
@@ -349,7 +349,6 @@ function renderLoop(timestamp: number) {
     //     camera_placeholder.position.clone().normalize()
     //   )
     // );
-
     // const new_camera_to_tip = tip_position
     //   .clone()
     //   .sub(camera_placeholder.position);
@@ -358,7 +357,6 @@ function renderLoop(timestamp: number) {
     // const euler = new THREE.Euler(new_camera_to_tip.x,
     //   new_camera_to_tip.y, new_camera_to_tip.z);
     // quat.setFromEuler(euler);
-
     // const new_camera_to_tip = tip_position
     //   .clone()
     //   .sub(camera_placeholder.position);
@@ -368,11 +366,9 @@ function renderLoop(timestamp: number) {
     //     camera_placeholder.position.clone().normalize(),new_camera_to_tip
     //   )
     // );
-
     // camera_placeholder.position.x = 0;
     // camera_placeholder.position.y = 0;
     // camera_placeholder.position.z = -12;
-
     // const rotationMatrix = new THREE.Matrix4();
     // rotationMatrix.lookAt(
     //   tip_position,
@@ -430,12 +426,6 @@ function renderLoop(timestamp: number) {
     //   crate_count++;
     //   document.getElementById("Score")!.textContent =
     //     "Score: " + crate_count.toString();
-
-    //   const sound_element = document.getElementById(
-    //     "Bonus",
-    //   )! as HTMLMediaElement;
-    //   sound_element.currentTime = 0;
-    //   sound_element.play();
     // }
   }
   if (!debug_stop) {
