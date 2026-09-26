@@ -362,7 +362,7 @@ function renderLoop(timestamp: number) {
 
     time += duration;
   }
-  const day_progress = Math.max(0, Math.min(1, (time - 1) / 15));
+  const day_progress = Math.max(0, Math.min(1, (time - 1) / 180));
   if (playing && !debug_stop && !finished) {
     UpdateSky(sky, day_progress);
     // GameLoop(duration, day_progress);
