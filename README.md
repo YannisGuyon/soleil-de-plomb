@@ -13,12 +13,9 @@ npm run dev
 
 ## To do
 
-- Integrate physics engine
-- Keyboard+mouse controller -> Yannis
 - Model Marcel Moustache + anim -> Célia
 - Model death + anim
 - Model ground
-- Model balls
 - Gameplay: what happens when Marcel goes in the sun -> what is the zone exactly
 - Gameplay: what happens when you hit death
 - Gameplay: what happens when the night comes
@@ -33,7 +30,10 @@ Bonus:
 
 ## Done
 
-- Model tree -> Robin
+- Model tree
+- Integrate physics engine
+- Keyboard+mouse controller
+- Model balls
 
 ## Thanks
 

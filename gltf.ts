@@ -71,6 +71,22 @@ export function LoadWall(scene: THREE.Object3D) {
   );
 }
 
+export function LoadBall(parent: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/ball.glb",
+    function (gltf) {
+      gltf.scene.scale.x = 0.22;
+      gltf.scene.scale.y = gltf.scene.scale.x;
+      gltf.scene.scale.z = gltf.scene.scale.x;
+      parent.add(gltf.scene);
+      // parent.visible = false;
+    },function () {},
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
 export function LoadTrain(train: THREE.Object3D) {
   loader.load(
     // resource URL
