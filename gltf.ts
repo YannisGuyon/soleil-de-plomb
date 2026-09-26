@@ -97,6 +97,27 @@ export function LoadMarcel(scene: THREE.Object3D) {
   return marcel;
 }
 
+export function LoadDeath(scene: THREE.Object3D) {
+  const death = new THREE.Group();
+  death.position.set(20, 0.51, 0);
+  scene.add(death);
+  loader.load(
+    "resources/gltf/death.glb",
+    function (gltf) {
+      gltf.scene.scale.x = 0.5;
+      gltf.scene.scale.y = gltf.scene.scale.x;
+      gltf.scene.scale.z = gltf.scene.scale.x;
+      death.add(gltf.scene);
+      gltf.scene.rotateX(Math.PI / 2);
+    },
+    function () {},
+    function (error) {
+      console.log("An error happened: " + error);
+    },
+  );
+  return death;
+}
+
 export function LoadBall(parent: THREE.Object3D) {
   loader.load(
     "resources/gltf/ball.glb",

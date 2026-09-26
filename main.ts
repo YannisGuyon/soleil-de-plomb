@@ -11,6 +11,7 @@ import {
   LoadBall,
   LoadWalk,
   LoadMarcel,
+  LoadDeath,
 } from "./gltf";
 import * as CANNON from "cannon-es";
 
@@ -97,6 +98,7 @@ LoadTree(scene);
 LoadWall(scene);
 LoadWalk(scene);
 const marcel = LoadMarcel(scene);
+const death = LoadDeath(scene);
 
 spot.add(
   new THREE.Mesh(
@@ -198,7 +200,12 @@ canvas.addEventListener("mouseup", () => {
       shootDirection.y * shoot_velocity + cubeBody.velocity.y,
       shootDirection.z * shoot_velocity + cubeBody.velocity.z,
     );
-    ballBody.quaternion.set(Math.random(), Math.random(), Math.random(), Math.random());
+    ballBody.quaternion.set(
+      Math.random(),
+      Math.random(),
+      Math.random(),
+      Math.random(),
+    );
 
     // Move the ball outside the player sphere
     const x = marcel.position.x + shootDirection.x * (1 * 1.02 + 0.2);
@@ -248,6 +255,7 @@ let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
 const success_screen = document.getElementById("EndScreen")!;
+const end_message = document.getElementById("EndMessage")! as HTMLDivElement;
 let success_screen_opacity = 0;
 let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")! as HTMLButtonElement;
@@ -414,6 +422,14 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     duration_since_mouse_down += duration;
 
+    // Update death location
+    let death_move = marcel.position.clone().sub(death.position);
+    death_move.y = 0;
+    death_move.setLength(duration * 1);
+    death.position.add(death_move);
+    death.position.y = 1 + Math.sin(time) * 0.5;
+    death.lookAt(marcel.position);
+
     // Update player location
     let movement_forward = marcel.position.clone();
     movement_forward.sub(camera.position);
@@ -484,6 +500,23 @@ function renderLoop(timestamp: number) {
       ballMeshes[i].quaternion.copy(balls[i].quaternion);
     }
 
+    let death_position = death.position
+      .clone()
+      .add(new THREE.Vector3(0, 0.5, 0));
+    for (let i = 0; i < balls.length; i++) {
+      if (
+        balls[i].velocity.lengthSquared() > 0.01 &&
+        ballMeshes[i].position.distanceToSquared(death_position) < 1 * 1
+      ) {
+        let vec = marcel.position
+          .clone()
+          .sub(death.position)
+          .multiplyScalar(1.2);
+        let new_death_position = marcel.position.clone().add(vec);
+        death.position.set(new_death_position.x, 0, new_death_position.z);
+      }
+    }
+
     let velocity = new THREE.Vector3(
       cubeBody.velocity.x,
       0,
@@ -524,7 +557,19 @@ function renderLoop(timestamp: number) {
     if (day_progress == 1) {
       finished = true;
       success_screen.style.display = "block";
+      end_message.textContent = "Success!";
       document.exitPointerLock();
+    } else {
+      let diff = new THREE.Vector2(
+        death.position.x - marcel.position.x,
+        death.position.z - marcel.position.z,
+      );
+      if (diff.lengthSq() < 1) {
+        finished = true;
+        success_screen.style.display = "block";
+        end_message.textContent = "Death!";
+        document.exitPointerLock();
+      }
     }
     // const damage = pre_post_effect.GetDamage();
     // if (damage > 0.0) {
