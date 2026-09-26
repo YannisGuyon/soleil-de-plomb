@@ -128,12 +128,15 @@ cubeBody.addShape(cubeShape);
 cubeBody.position.x = marcel.position.x;
 cubeBody.position.y = marcel.position.y;
 cubeBody.position.z = marcel.position.z;
+cubeBody.fixedRotation = true;
+// cubeBody.type = CANNON.BODY_TYPES.KINEMATIC;
 // cubeBody.linearDamping = 1.0;
 world.addBody(cubeBody);
 const planeShape = new CANNON.Plane();
 const planeBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
 planeBody.addShape(planeShape);
 planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+// planeBody.type = CANNON.BODY_TYPES.STATIC;
 world.addBody(planeBody);
 const treeShape = new CANNON.Cylinder(1, 1, 10);
 const treeBody = new CANNON.Body({ mass: 0 });
@@ -141,8 +144,8 @@ treeBody.addShape(treeShape);
 world.addBody(treeBody);
 
 // The shooting balls
-const ballShape = new CANNON.Sphere(0.2);
-const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
+const ballShape = new CANNON.Cylinder(0.2, 0.2, 0.4);
+const ballGeometry = new THREE.SphereGeometry(0.2, 4, 4);
 
 // Returns a vector pointing the the diretion the camera is at
 function getShootDirection() {
@@ -191,18 +194,16 @@ canvas.addEventListener("mouseup", () => {
     const shootDirection = getShootDirection();
     const shoot_velocity = 4 + Math.min(20, duration_since_mouse_down * 4);
     ballBody.velocity.set(
-      shootDirection.x * shoot_velocity,
-      shootDirection.y * shoot_velocity,
-      shootDirection.z * shoot_velocity,
+      shootDirection.x * shoot_velocity + cubeBody.velocity.x,
+      shootDirection.y * shoot_velocity + cubeBody.velocity.y,
+      shootDirection.z * shoot_velocity + cubeBody.velocity.z,
     );
+    ballBody.quaternion.set(Math.random(), Math.random(), Math.random(), Math.random());
 
     // Move the ball outside the player sphere
-    const x =
-      marcel.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
-    const y =
-      marcel.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
-    const z =
-      marcel.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
+    const x = marcel.position.x + shootDirection.x * (1 * 1.02 + 0.2);
+    const y = marcel.position.y + shootDirection.y * (1 * 1.02 + 0.2);
+    const z = marcel.position.z + shootDirection.z * (1 * 1.02 + 0.2);
     ballBody.position.set(x, y, z);
     ballMesh.position.copy(ballBody.position);
   }
