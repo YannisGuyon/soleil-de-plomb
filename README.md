@@ -14,13 +14,6 @@ npm run dev
 ## To do
 
 - Model Marcel Moustache + anim -> Célia
-- Model death + anim
-- Model ground
-- Gameplay: what happens when Marcel goes in the sun -> what is the zone exactly
-- Gameplay: what happens when you hit death
-- Gameplay: what happens when the night comes
-- Gameplay+graphics: sun stuff and shadows -> Robin
-- UI: buttons, colors, text, menus
 - Sound to integrate
 
 Bonus:
@@ -34,6 +27,13 @@ Bonus:
 - Integrate physics engine
 - Keyboard+mouse controller
 - Model balls
+- Model death + anim
+- Model ground
+- Gameplay: what happens when Marcel goes in the sun
+- Gameplay: what happens when you hit death
+- Gameplay: what happens when the night comes
+- Gameplay+graphics: sun stuff and shadows
+- UI: buttons, colors, text, menus
 
 ## Thanks
 
