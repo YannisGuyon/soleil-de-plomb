@@ -71,6 +71,23 @@ export function LoadWall(scene: THREE.Object3D) {
   );
 }
 
+export function LoadMarcel(scene: THREE.Object3D) {
+  const marcel = new THREE.Group();
+  marcel.position.set(5, 0.51, 0);
+  scene.add(marcel);
+  loader.load(
+    "resources/gltf/marcel.glb",
+    function (gltf) {
+      marcel.add(gltf.scene);
+    },
+    function () {},
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+  return marcel;
+}
+
 export function LoadTrain(train: THREE.Object3D) {
   loader.load(
     // resource URL

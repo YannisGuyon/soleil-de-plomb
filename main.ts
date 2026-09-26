@@ -3,7 +3,7 @@ import * as THREE from "three";
 //import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from "./sky";
-import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk } from "./gltf";
+import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk, LoadMarcel } from "./gltf";
 import * as CANNON from "cannon-es";
 
 const debug_mode = false;
@@ -83,6 +83,13 @@ scene.add(sun_light);
 const spot = new THREE.PointLight(0xffffff, 1, 400);
 scene.add(spot);
 
+LoadGround(scene);
+LoadHouse(scene);
+LoadTree(scene);
+LoadWall(scene);
+LoadWalk(scene);
+const marcel = LoadMarcel(scene);
+
 spot.add(
   new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
@@ -92,16 +99,6 @@ spot.add(
 spot.position.x = -20;
 spot.position.y = 20;
 spot.position.z = 20;
-
-// Debug cube
-const box = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshStandardMaterial({ color: 0x000000 }),
-);
-scene.add(box);
-box.position.x = 5;
-box.position.y = 0.51;
-box.position.z = 0;
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
@@ -120,9 +117,9 @@ world.addContactMaterial(physics_physics);
 const cubeShape = new CANNON.Cylinder(0.5, 0.5, 1);
 const cubeBody = new CANNON.Body({ mass: 0.1, material: physicsMaterial });
 cubeBody.addShape(cubeShape);
-cubeBody.position.x = box.position.x;
-cubeBody.position.y = box.position.y;
-cubeBody.position.z = box.position.z;
+cubeBody.position.x = marcel.position.x;
+cubeBody.position.y = marcel.position.y;
+cubeBody.position.z = marcel.position.z;
 // cubeBody.linearDamping = 1.0;
 world.addBody(cubeBody);
 const planeShape = new CANNON.Plane();
@@ -144,7 +141,7 @@ const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 function getShootDirection() {
   const vector = new THREE.Vector3(0, 0, 1);
   vector.unproject(camera);
-  const ray = new THREE.Ray(box.position, vector.sub(box.position).normalize());
+  const ray = new THREE.Ray(marcel.position, vector.sub(marcel.position).normalize());
   return ray.direction;
 }
 
@@ -184,9 +181,9 @@ canvas.addEventListener("click", async () => {
     );
 
     // Move the ball outside the player sphere
-    const x = box.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
-    const y = box.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
-    const z = box.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
+    const x = marcel.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
+    const y = marcel.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
+    const z = marcel.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
     ballBody.position.set(x, y, z);
     ballMesh.position.copy(ballBody.position);
   }
@@ -195,7 +192,7 @@ canvas.addEventListener("click", async () => {
 camera.position.x = 0;
 camera.position.y = 4;
 camera.position.z = 5;
-camera.lookAt(box.position);
+camera.lookAt(marcel.position);
 
 // Debug cube
 const boxx = new THREE.Mesh(
@@ -226,12 +223,6 @@ scene.add(boxz);
 boxz.position.x = 0;
 boxz.position.y = 0;
 boxz.position.z = 2;
-
-LoadGround(scene);
-LoadHouse(scene);
-LoadTree(scene);
-LoadWall(scene);
-LoadWalk(scene);
 
 let playing = false;
 let finished = false;
@@ -422,7 +413,7 @@ function renderLoop(timestamp: number) {
 
   if (playing && !debug_stop && !finished) {
     // Update player location
-    let movement_forward = box.position.clone();
+    let movement_forward = marcel.position.clone();
     movement_forward.sub(camera.position);
     movement_forward.y = 0;
     movement_forward.normalize();
@@ -474,7 +465,7 @@ function renderLoop(timestamp: number) {
     // world.step(duration);
 
     // Copy coordinates from Cannon to Three.js
-    box.position.set(
+    marcel.position.set(
       cubeBody.position.x,
       cubeBody.position.y,
       cubeBody.position.z,
@@ -497,11 +488,11 @@ function renderLoop(timestamp: number) {
       cubeBody.velocity.z,
     );
     if (velocity.lengthSq() > duration) {
-      box.lookAt(box.position.clone().add(velocity));
+      marcel.lookAt(marcel.position.clone().add(velocity));
     }
 
     // Update camera location
-    let camera_position = box.position
+    let camera_position = marcel.position
       .clone()
       .add(
         new THREE.Vector3(0, 0, 10)
@@ -519,7 +510,7 @@ function renderLoop(timestamp: number) {
     // vec.setLength(10);
     // vec.add(box.position);
     // camera.position.set(vec.x, box.position.y + 5, vec.z);
-    camera.lookAt(box.position);
+    camera.lookAt(marcel.position);
 
     time += duration;
   }
