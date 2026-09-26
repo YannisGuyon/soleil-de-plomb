@@ -58,7 +58,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 // Environment
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.1;
+renderer.toneMappingExposure = 0.5;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
@@ -89,8 +89,6 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 const sun_light = new THREE.DirectionalLight(0xffffff, 3);
 scene.add(sun_light);
-const spot = new THREE.PointLight(0xffffff, 1, 400);
-scene.add(spot);
 
 LoadGround(scene);
 LoadHouse(scene);
@@ -99,16 +97,6 @@ LoadWall(scene);
 LoadWalk(scene);
 const marcel = LoadMarcel(scene);
 const death = LoadDeath(scene);
-
-spot.add(
-  new THREE.Mesh(
-    new THREE.SphereGeometry(0.1),
-    new THREE.MeshBasicMaterial({ color: 0xffffff }),
-  ),
-);
-spot.position.x = -20;
-spot.position.y = 20;
-spot.position.z = 20;
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
