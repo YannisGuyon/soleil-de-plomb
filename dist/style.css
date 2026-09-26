@@ -61,7 +61,7 @@ body {
 #GrosOverlay {
     position: absolute;
     background: rgb(2, 0, 36);
-    background: linear-gradient(346deg, rgba(2, 0, 36, 1) 20%, rgba(9, 71, 121, 1) 43%, rgba(87, 177, 195, 1) 91%);
+    background: linear-gradient(346deg,rgba(171, 231, 255, 1) 0%, rgba(29, 204, 253, 1) 50%, rgba(69, 218, 252, 1) 100%);
     left: 0;
     right: 0;
     top: 0;
@@ -80,48 +80,40 @@ body {
     height: 90%;
     text-align: center;
 
-    transform: translate(50%, -50%);
-    text-transform: uppercase;
-    font-family: verdana;
-    font-size: 12em;
+    /* transform: translate(50%, -50%); */
+    /* text-transform: uppercase; */
+    font-family: Impact, Charcoal, sans-serif;
+    text-decoration: none;
+    font-style: italic;
+    font-variant: small-caps;
+    text-transform: none;
+    font-size: 10em;
     font-weight: 700;
     color: #f5f5f5;
-    text-shadow: 1px 1px 1px #919191,
-        1px 2px 1px #919191,
-        1px 3px 1px #919191,
-        1px 4px 1px #919191,
-        1px 5px 1px #919191,
-        1px 6px 1px #919191,
-        1px 7px 1px #919191,
-        1px 8px 1px #919191,
-        1px 9px 1px #919191,
-        1px 10px 1px #919191,
-        1px 18px 6px rgba(16, 16, 16, 0.4),
-        1px 22px 10px rgba(16, 16, 16, 0.2),
-        1px 25px 35px rgba(16, 16, 16, 0.2),
-        1px 30px 60px rgba(16, 16, 16, 0.4);
-
-    transform: rotate(11deg);
+    text-shadow: 0 -1px 0 #fff, 0 1px 0 #2e2e2e, 0 2px 0 #2c2c2c, 0 3px 0 #2a2a2a, 0 4px 0 #282828, 0 5px 0 #262626, 0 6px 0 #242424, 0 7px 0 #222, 0 8px 0 #202020, 0 9px 0 #1e1e1e, 0 10px 0 #1c1c1c, 0 11px 0 #1a1a1a, 0 12px 0 #181818, 0 13px 0 #161616, 0 14px 0 #141414, 0 15px 0 #121212, 0 22px 30px rgba(0,0,0,0.9);
+    transform: rotate(1deg);
 }
 
 #PlayButton {
     position: absolute;
     top: 20%;
-    right: -5%;
-    width: 40%;
-    height: 50%;
+    right: 10%;
+    width: 40vw;
+    height: 40vw;
 
     appearance: button;
-    background-color: #1899D6;
+    /* background-color: #acaeae; */
+    background: #ebebeb;
+background: radial-gradient(circle at 20% 40%,rgba(235, 235, 235, 1) 0%, rgba(150, 150, 150, 1) 93%, rgba(255, 255, 255, 1) 100%);
     border: solid transparent;
-    border-radius: 16px;
+    border-radius: 1600px;
     border-width: 0 0 4px;
     box-sizing: border-box;
     color: #FFFFFF;
     cursor: pointer;
     display: inline-block;
     font-family: din-round, sans-serif;
-    font-size: 10em;
+    font-size: 10vw;
     font-weight: 700;
     letter-spacing: .8px;
     line-height: 20px;
@@ -142,9 +134,11 @@ body {
 
 #PlayButton:after {
     background-clip: padding-box;
-    background-color: #1CB0F6;
+    /* background-color: #c5c5c5; */
+    background: #ebebeb;
+background: radial-gradient(circle at 20% 40%,rgba(235, 235, 235, 1) 0%, rgba(105, 105, 105, 1) 71%, rgba(255, 255, 255, 1) 100%);
     border: solid transparent;
-    border-radius: 16px;
+    border-radius: 1600px;
     border-width: 0 0 4px;
     bottom: -4px;
     content: "";
@@ -177,10 +171,26 @@ body {
 
 
 
-#EncorePlusGrosOverlay {
+#EndScreen {
     position: absolute;
     background: rgb(2, 0, 36);
-    background: linear-gradient(346deg, rgba(2, 0, 36, 1) 20%, rgba(9, 71, 121, 0.425) 43%, rgba(87, 177, 195, 1) 91%);
+    background: linear-gradient(346deg,rgba(171, 231, 255, 1) 0%, rgba(29, 204, 253, 1) 50%, rgba(69, 218, 252, 1) 100%);
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 25;
+    display: none;
+    opacity: 0;
+    overflow: hidden;
+}
+
+#Failure {
+    position: absolute;
+    background: rgb(2, 0, 36);
+    background: linear-gradient(346deg,rgba(255, 238, 171, 1) 0%, rgba(253, 48, 29, 1) 50%, rgba(252, 197, 69, 1) 100%);
     left: 0;
     right: 0;
     top: 0;
@@ -194,35 +204,25 @@ body {
 }
 
 
-#DeliverySuccess {
+#EndMessage {
     position: relative;
     top: 20%;
     right: 0%;
     width: 100%;
     height: 10%;
 
-    transform: translate(50%, -50%);
-    text-transform: uppercase;
-    font-family: verdana;
-    font-size: 12em;
+    /* transform: translate(50%, -50%); */
+    /* text-transform: uppercase; */
+    font-family: Impact, Charcoal, sans-serif;
+    text-decoration: none;
+    font-style: italic;
+    font-variant: small-caps;
+    text-transform: none;
+    font-size: 10em;
     font-weight: 700;
     color: #f5f5f5;
-    text-shadow: 1px 1px 1px #919191,
-        1px 2px 1px #919191,
-        1px 3px 1px #919191,
-        1px 4px 1px #919191,
-        1px 5px 1px #919191,
-        1px 6px 1px #919191,
-        1px 7px 1px #919191,
-        1px 8px 1px #919191,
-        1px 9px 1px #919191,
-        1px 10px 1px #919191,
-        1px 18px 6px rgba(16, 16, 16, 0.4),
-        1px 22px 10px rgba(16, 16, 16, 0.2),
-        1px 25px 35px rgba(16, 16, 16, 0.2),
-        1px 30px 60px rgba(16, 16, 16, 0.4);
-
-    transform: rotate(11deg);
+    text-shadow: 0 -1px 0 #fff, 0 1px 0 #2e2e2e, 0 2px 0 #2c2c2c, 0 3px 0 #2a2a2a, 0 4px 0 #282828, 0 5px 0 #262626, 0 6px 0 #242424, 0 7px 0 #222, 0 8px 0 #202020, 0 9px 0 #1e1e1e, 0 10px 0 #1c1c1c, 0 11px 0 #1a1a1a, 0 12px 0 #181818, 0 13px 0 #161616, 0 14px 0 #141414, 0 15px 0 #121212, 0 22px 30px rgba(0,0,0,0.9);
+    transform: rotate(1deg);
 }
 
 #Damage {
@@ -271,22 +271,24 @@ body {
 
 #ReplayButton {
     position: absolute;
-    top: 40%;
-    right: -5%;
-    width: 30%;
-    height: 40%;
+    top: 20%;
+    right: 10%;
+    width: 40vw;
+    height: 40vw;
 
     appearance: button;
-    background-color: #1899D6;
+    /* background-color: #acaeae; */
+    background: #ebebeb;
+background: radial-gradient(circle at 20% 40%,rgba(235, 235, 235, 1) 0%, rgba(150, 150, 150, 1) 93%, rgba(255, 255, 255, 1) 100%);
     border: solid transparent;
-    border-radius: 16px;
+    border-radius: 1600px;
     border-width: 0 0 4px;
     box-sizing: border-box;
     color: #FFFFFF;
     cursor: pointer;
     display: inline-block;
     font-family: din-round, sans-serif;
-    font-size: 5em;
+    font-size: 6vw;
     font-weight: 700;
     letter-spacing: .8px;
     line-height: 20px;
@@ -307,9 +309,11 @@ body {
 
 #ReplayButton:after {
     background-clip: padding-box;
-    background-color: #1CB0F6;
+    /* background-color: #c5c5c5; */
+    background: #ebebeb;
+background: radial-gradient(circle at 20% 40%,rgba(235, 235, 235, 1) 0%, rgba(105, 105, 105, 1) 71%, rgba(255, 255, 255, 1) 100%);
     border: solid transparent;
-    border-radius: 16px;
+    border-radius: 1600px;
     border-width: 0 0 4px;
     bottom: -4px;
     content: "";
