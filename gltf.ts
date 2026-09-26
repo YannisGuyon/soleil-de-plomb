@@ -5,6 +5,18 @@ import { Noise3D } from "./utils";
 
 const loader = new GLTFLoader();
 
+export function LoadGround(scene: THREE.Object3D) {
+  loader.load(
+    "resources/gltf/ground.glb",
+    function (gltf) {
+      scene.add(gltf.scene);
+    },
+    function (error) {
+      console.log("An error happened: " + error);
+    }
+  );
+}
+
 export function LoadTrain(train: THREE.Object3D) {
   loader.load(
     // resource URL

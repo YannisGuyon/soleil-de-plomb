@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
+//import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from './sky';
+import { LoadGround } from './gltf';
 
 const debug_mode = false;
 
@@ -66,10 +67,20 @@ let debug_camera = false;
 let debug_stop = false;
 
 // Objects
+const sky_scene = new THREE.Scene();
+const sky_object = CreateSky(sky_scene, debug_mode);
+const sky_render_target = new THREE.WebGLCubeRenderTarget( 256, { type: THREE.HalfFloatType } );
+const sky_camera = new THREE.CubeCamera( 1, 1000, sky_render_target );
+
 const scene = new THREE.Scene();
+scene.environment = sky_render_target.texture;
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const sun_light = new THREE.DirectionalLight(0xffffff, 3);
+scene.add(sun_light);
 const spot = new THREE.PointLight(0xffffff, 1, 400);
 scene.add(spot);
+
 spot.add(
   new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
@@ -79,7 +90,6 @@ spot.add(
 spot.position.x = -20;
 spot.position.y = 20;
 spot.position.z = 20;
-const sky = CreateSky(scene, debug_mode);
 
 const camera_representation = new THREE.Mesh(
   new THREE.ConeGeometry(0.2, 1),
@@ -136,16 +146,7 @@ boxz.position.x = 0;
 boxz.position.y = 0;
 boxz.position.z = 2;
 
-// Ground
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(100, 100),
-  new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.FrontSide }),
-);
-scene.add(ground);
-ground.position.x = 0;
-ground.position.y = 0;
-ground.position.z = 0;
-ground.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+LoadGround(scene);
 
 let playing = false;
 let finished = false;
@@ -158,10 +159,10 @@ let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
 
-new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
+/*new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = texture;
-});
+});*/
 
 let marcel_pousse_up = false;
 let marcel_pousse_down = false;
@@ -381,7 +382,7 @@ function renderLoop(timestamp: number) {
   }
   const day_progress = Math.max(0, Math.min(1, (time - 1) / 180));
   if (playing && !debug_stop && !finished) {
-    UpdateSky(sky, day_progress);
+    UpdateSky(sky_object, day_progress);
     // GameLoop(duration, day_progress);
 
     if (day_progress == 1) {
@@ -573,6 +574,10 @@ function renderLoop(timestamp: number) {
   renderer.autoClear = false;
   renderer.clear();
   // pre_post_effect.PreRender(renderer, camera);
+
+  renderer.render(sky_scene, camera);
+  sky_camera.update(renderer, sky_scene);
+
   renderer.render(scene, camera);
   // pre_post_effect.PostRender(renderer, camera);
 

@@ -41,7 +41,8 @@ function CreateSky(scene: THREE.Scene, debug_mode: boolean) {
   skyUniforms['rayleigh'].value = 3;
   skyUniforms['mieCoefficient'].value = 0.005;
   skyUniforms['mieDirectionalG'].value = 0.98;
-  skyUniforms['cloudCoverage'].value = 0.0;
+  skyUniforms['cloudCoverage'].value = 0.4;
+  skyUniforms["showSunDisc"].value = 0;
   const sun = new THREE.Vector3();
   const phi = 0;
   const theta = Math.PI;
@@ -58,6 +59,7 @@ function UpdateSky(sky: Sky, day_progress: number) {
   const theta = Math.PI;
   sun.setFromSphericalCoords(1, phi, theta);
   sky.material.uniforms['sunPosition'].value.copy(sun);
+  sky.material.uniforms[ 'time' ].value = performance.now() * 0.001;
 }
 
 export { CreateSky, UpdateSky }
