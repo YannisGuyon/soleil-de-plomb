@@ -337,28 +337,45 @@ function renderLoop(timestamp: number) {
   }
 
   if (playing && !debug_stop && !finished) {
+    // Update player location
+    let movement_forward = box.position.clone();
+    movement_forward.sub(camera_position.position);
+    movement_forward.y = 0;
+    movement_forward.normalize();
+    let movement_right = new THREE.Vector3(
+      -movement_forward.z,
+      0,
+      movement_forward.x,
+    );
+
     let marcel_pousse = new THREE.Vector3();
     if (marcel_pousse_up) {
-      marcel_pousse.z -= 1;
+      marcel_pousse.add(movement_forward);
     }
     if (marcel_pousse_down) {
-      marcel_pousse.z += 1;
+      marcel_pousse.sub(movement_forward);
     }
     if (marcel_pousse_left) {
-      marcel_pousse.x -= 1;
+      marcel_pousse.sub(movement_right);
     }
     if (marcel_pousse_right) {
-      marcel_pousse.x += 1;
+      marcel_pousse.add(movement_right);
     }
-    marcel_pousse.multiplyScalar(duration * 5);
-    box.position.add(marcel_pousse);
+    if (marcel_pousse.lengthSq() > 0) {
+      marcel_pousse.normalize();
+      marcel_pousse.multiplyScalar(duration * 5);
+      box.position.add(marcel_pousse);
+    }
+    box.lookAt(box.position.clone().add(movement_forward));
 
+    // Update camera location
     camera_position.lookAt(box.position);
     let vec = camera_position.position;
     vec.sub(box.position);
-    vec.setLength(5);
+    vec.y = 0;
+    vec.setLength(10);
     vec.add(box.position);
-    camera_position.position.set(vec.x, vec.y, vec.z);
+    camera_position.position.set(vec.x, box.position.y + 5, vec.z);
 
     time += duration;
   }
