@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from './sky';
 import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk } from './gltf';
+import * as CANNON from "cannon-es";
 
 const debug_mode = false;
 
@@ -34,7 +35,10 @@ let pan = 0;
 let tilt = 0.2;
 function updatePosition(e: MouseEvent) {
   pan -= e.movementX * 0.001;
-  tilt = Math.max(-Math.PI * 0.2, Math.min(Math.PI * 0.2, tilt + e.movementY * 0.001));
+  tilt = Math.max(
+    -Math.PI * 0.2,
+    Math.min(Math.PI * 0.2, tilt + e.movementY * 0.001),
+  );
 }
 function lockChangeAlert() {
   if (document.pointerLockElement === canvas) {
@@ -103,6 +107,21 @@ scene.add(box);
 box.position.x = 0;
 box.position.y = 2;
 box.position.z = 0;
+
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+const cubeShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
+const cubeBody = new CANNON.Body({ mass: 1 });
+cubeBody.addShape(cubeShape);
+cubeBody.position.x = box.position.x;
+cubeBody.position.y = box.position.y;
+cubeBody.position.z = box.position.z;
+world.addBody(cubeBody);
+const planeShape = new CANNON.Plane();
+const planeBody = new CANNON.Body({ mass: 0 });
+planeBody.addShape(planeShape);
+planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+world.addBody(planeBody);
 
 camera.position.x = 0;
 camera.position.y = 4;
@@ -358,11 +377,33 @@ function renderLoop(timestamp: number) {
       marcel_pousse.add(movement_right);
     }
     if (marcel_pousse.lengthSq() > 0) {
-      marcel_pousse.normalize();
-      marcel_pousse.multiplyScalar(duration * 5);
-      box.position.add(marcel_pousse);
-      box.lookAt(box.position.clone().add(marcel_pousse));
+      marcel_pousse.setLength(10);
+      cubeBody.applyForce(
+        new CANNON.Vec3(marcel_pousse.x, marcel_pousse.y, marcel_pousse.z),
+      );
+      // box.position.add(marcel_pousse);
+      // box.lookAt(box.position.clone().add(marcel_pousse));
+      // cubeBody.applyImpulse(
+      //   new CANNON.Vec3(marcel_pousse.x, 10000, marcel_pousse.z),
+      // );
     }
+
+    world.step(duration);
+
+    // world.step(duration);
+
+    // Copy coordinates from Cannon to Three.js
+    box.position.set(
+      cubeBody.position.x,
+      cubeBody.position.y,
+      cubeBody.position.z,
+    );
+    box.quaternion.set(
+      cubeBody.quaternion.x,
+      cubeBody.quaternion.y,
+      cubeBody.quaternion.z,
+      cubeBody.quaternion.w,
+    );
 
     // Update camera location
     let camera_position = box.position
