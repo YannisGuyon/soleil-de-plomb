@@ -34,6 +34,18 @@ const camera = new THREE.PerspectiveCamera(
   /*near=*/ 0.001,
   /*far=*/ 100,
 );
+const camera_position = new THREE.PerspectiveCamera(
+  /*fov=*/ 60,
+  /*aspect=*/ window.innerWidth / window.innerHeight,
+  /*near=*/ 0.001,
+  /*far=*/ 100,
+);
+const debug_camera_position = new THREE.PerspectiveCamera(
+  /*fov=*/ 60,
+  /*aspect=*/ window.innerWidth / window.innerHeight,
+  /*near=*/ 0.001,
+  /*far=*/ 100,
+);
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
@@ -45,7 +57,7 @@ audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
   sound.setVolume(0.2);
 });
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(debug_camera_position, renderer.domElement);
 let debug_camera = false;
 let debug_stop = false;
 
@@ -64,16 +76,11 @@ spot.position.x = -20;
 spot.position.y = 20;
 spot.position.z = 20;
 
-const camera_placeholder = new THREE.Object3D();
-camera_placeholder.position.y = 4;
-camera_placeholder.position.z = 5;
 const camera_representation = new THREE.Mesh(
   new THREE.ConeGeometry(0.2, 1),
   new THREE.MeshStandardMaterial({ color: 0x996666 }),
 );
-camera_representation.rotateX(Math.PI * 0.5);
-camera_placeholder.add(camera_representation);
-scene.add(camera_placeholder);
+scene.add(camera_representation);
 
 // Debug cube
 const box = new THREE.Mesh(
@@ -85,7 +92,14 @@ box.position.x = 0;
 box.position.y = 2;
 box.position.z = 0;
 
-camera_placeholder.lookAt(box.position);
+camera_position.position.x = 0;
+camera_position.position.y = 4;
+camera_position.position.z = 5;
+camera_position.lookAt(box.position);
+debug_camera_position.position.x = 10;
+debug_camera_position.position.y = 1;
+debug_camera_position.position.z = 20;
+debug_camera_position.lookAt(box.position);
 
 // Debug cube
 const boxx = new THREE.Mesh(
@@ -158,12 +172,6 @@ function onDocumentKeyDown(event: KeyboardEvent) {
   var keyCode = event.key;
   if (keyCode == "Shift") {
     debug_camera = !debug_camera;
-    if (debug_camera) {
-      camera.position.x = 0;
-      camera.position.y = 1;
-      camera.position.z = 20;
-      camera.lookAt(box.position);
-    }
   } else if (
     keyCode == "ArrowUp" ||
     keyCode == "w" ||
@@ -340,6 +348,13 @@ function renderLoop(timestamp: number) {
     marcel_pousse.multiplyScalar(duration * 5);
     box.position.add(marcel_pousse);
 
+    camera_position.lookAt(box.position);
+    let vec = camera_position.position;
+    vec.sub(box.position);
+    vec.setLength(5);
+    vec.add(box.position);
+    camera_position.position.set(vec.x, vec.y, vec.z);
+
     time += duration;
   }
   const factor = Math.max(0, Math.min(1, (time - 1) / 3600));
@@ -515,9 +530,16 @@ function renderLoop(timestamp: number) {
 
   if (debug_camera) {
     controls.update();
+    debug_camera_position.getWorldPosition(camera.position);
+    debug_camera_position.getWorldQuaternion(camera.quaternion);
+    camera_position.getWorldPosition(camera_representation.position);
+    camera_position.getWorldQuaternion(camera_representation.quaternion);
+    camera_representation.rotateX(Math.PI * 0.5);
+    camera_representation.visible = true;
   } else {
-    camera_placeholder.getWorldPosition(camera.position);
-    camera_placeholder.getWorldQuaternion(camera.quaternion);
+    camera_position.getWorldPosition(camera.position);
+    camera_position.getWorldQuaternion(camera.quaternion);
+    camera_representation.visible = false;
   }
 
   if (playing && !debug_stop) {
