@@ -88,7 +88,7 @@ export function LoadMarcel(scene: THREE.Object3D) {
     function () {},
     function (error) {
       console.log("An error happened: " + error);
-    }
+    },
   );
   return marcel;
 }

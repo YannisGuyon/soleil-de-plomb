@@ -149,7 +149,10 @@ const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 function getShootDirection() {
   const vector = new THREE.Vector3(0, 0, 1);
   vector.unproject(camera);
-  const ray = new THREE.Ray(marcel.position, vector.sub(marcel.position).normalize());
+  const ray = new THREE.Ray(
+    marcel.position,
+    vector.sub(marcel.position).normalize(),
+  );
   return ray.direction;
 }
 
@@ -191,9 +194,12 @@ canvas.addEventListener("click", async () => {
     );
 
     // Move the ball outside the player sphere
-    const x = marcel.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
-    const y = marcel.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
-    const z = marcel.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
+    const x =
+      marcel.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
+    const y =
+      marcel.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
+    const z =
+      marcel.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
     ballBody.position.set(x, y, z);
     ballMesh.position.copy(ballBody.position);
   }
