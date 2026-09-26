@@ -207,8 +207,8 @@ background: radial-gradient(circle at 20% 40%,rgba(235, 235, 235, 1) 0%, rgba(10
 #EndMessage {
     position: relative;
     top: 20%;
-    right: 0%;
-    width: 100%;
+    left: 10%;
+    width: 90%;
     height: 10%;
 
     /* transform: translate(50%, -50%); */

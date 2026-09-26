@@ -11,6 +11,7 @@ import {
   LoadBall,
   LoadWalk,
   LoadMarcel,
+  LoadDeath,
 } from "./gltf";
 import * as CANNON from "cannon-es";
 
@@ -57,7 +58,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 // Environment
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.1;
+renderer.toneMappingExposure = 0.5;
 renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -104,8 +105,6 @@ sun_light.shadow.bias = -0.0001;
 const raycaster = new THREE.Raycaster();
 
 scene.add(sun_light);
-const spot = new THREE.PointLight(0xffffff, 1, 400);
-scene.add(spot);
 
 LoadGround(scene);
 const house = LoadHouse(scene);
@@ -113,18 +112,9 @@ const tree = LoadTree(scene);
 const wall = LoadWall(scene);
 LoadWalk(scene);
 const marcel = LoadMarcel(scene);
+const death = LoadDeath(scene);
 
 const shadows_maker: Array<THREE.Object3D> = [house, tree, wall];
-
-spot.add(
-  new THREE.Mesh(
-    new THREE.SphereGeometry(0.1),
-    new THREE.MeshBasicMaterial({ color: 0xffffff }),
-  ),
-);
-spot.position.x = -20;
-spot.position.y = 20;
-spot.position.z = 20;
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
@@ -146,12 +136,15 @@ cubeBody.addShape(cubeShape);
 cubeBody.position.x = marcel.position.x;
 cubeBody.position.y = marcel.position.y;
 cubeBody.position.z = marcel.position.z;
+cubeBody.fixedRotation = true;
+// cubeBody.type = CANNON.BODY_TYPES.KINEMATIC;
 // cubeBody.linearDamping = 1.0;
 world.addBody(cubeBody);
 const planeShape = new CANNON.Plane();
 const planeBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
 planeBody.addShape(planeShape);
 planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+// planeBody.type = CANNON.BODY_TYPES.STATIC;
 world.addBody(planeBody);
 const treeShape = new CANNON.Cylinder(1, 1, 10);
 const treeBody = new CANNON.Body({ mass: 0 });
@@ -159,8 +152,8 @@ treeBody.addShape(treeShape);
 world.addBody(treeBody);
 
 // The shooting balls
-const ballShape = new CANNON.Sphere(0.2);
-const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
+const ballShape = new CANNON.Cylinder(0.2, 0.2, 0.4);
+const ballGeometry = new THREE.SphereGeometry(0.2, 4, 4);
 
 // Returns a vector pointing the the diretion the camera is at
 function getShootDirection() {
@@ -209,18 +202,21 @@ canvas.addEventListener("mouseup", () => {
     const shootDirection = getShootDirection();
     const shoot_velocity = 4 + Math.min(20, duration_since_mouse_down * 4);
     ballBody.velocity.set(
-      shootDirection.x * shoot_velocity,
-      shootDirection.y * shoot_velocity,
-      shootDirection.z * shoot_velocity,
+      shootDirection.x * shoot_velocity + cubeBody.velocity.x,
+      shootDirection.y * shoot_velocity + cubeBody.velocity.y,
+      shootDirection.z * shoot_velocity + cubeBody.velocity.z,
+    );
+    ballBody.quaternion.set(
+      Math.random(),
+      Math.random(),
+      Math.random(),
+      Math.random(),
     );
 
     // Move the ball outside the player sphere
-    const x =
-      marcel.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
-    const y =
-      marcel.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
-    const z =
-      marcel.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
+    const x = marcel.position.x + shootDirection.x * (1 * 1.02 + 0.2);
+    const y = marcel.position.y + shootDirection.y * (1 * 1.02 + 0.2);
+    const z = marcel.position.z + shootDirection.z * (1 * 1.02 + 0.2);
     ballBody.position.set(x, y, z);
     ballMesh.position.copy(ballBody.position);
   }
@@ -265,6 +261,7 @@ let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
 const success_screen = document.getElementById("EndScreen")!;
+const end_message = document.getElementById("EndMessage")! as HTMLDivElement;
 let success_screen_opacity = 0;
 let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")! as HTMLButtonElement;
@@ -431,6 +428,14 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     duration_since_mouse_down += duration;
 
+    // Update death location
+    let death_move = marcel.position.clone().sub(death.position);
+    death_move.y = 0;
+    death_move.setLength(duration * 1);
+    death.position.add(death_move);
+    death.position.y = 1 + Math.sin(time) * 0.5;
+    death.lookAt(marcel.position);
+
     // Update player location
     let movement_forward = marcel.position.clone();
     movement_forward.sub(camera.position);
@@ -501,6 +506,23 @@ function renderLoop(timestamp: number) {
       ballMeshes[i].quaternion.copy(balls[i].quaternion);
     }
 
+    let death_position = death.position
+      .clone()
+      .add(new THREE.Vector3(0, 0.5, 0));
+    for (let i = 0; i < balls.length; i++) {
+      if (
+        balls[i].velocity.lengthSquared() > 0.01 &&
+        ballMeshes[i].position.distanceToSquared(death_position) < 1 * 1
+      ) {
+        let vec = marcel.position
+          .clone()
+          .sub(death.position)
+          .multiplyScalar(1.2);
+        let new_death_position = marcel.position.clone().add(vec);
+        death.position.set(new_death_position.x, 0, new_death_position.z);
+      }
+    }
+
     let velocity = new THREE.Vector3(
       cubeBody.velocity.x,
       0,
@@ -553,7 +575,19 @@ function renderLoop(timestamp: number) {
     if (day_progress == 1) {
       finished = true;
       success_screen.style.display = "block";
+      end_message.textContent = "Success!";
       document.exitPointerLock();
+    } else {
+      let diff = new THREE.Vector2(
+        death.position.x - marcel.position.x,
+        death.position.z - marcel.position.z,
+      );
+      if (diff.lengthSq() < 1) {
+        finished = true;
+        success_screen.style.display = "block";
+        end_message.textContent = "Death!";
+        document.exitPointerLock();
+      }
     }
     // const damage = pre_post_effect.GetDamage();
     // if (damage > 0.0) {
