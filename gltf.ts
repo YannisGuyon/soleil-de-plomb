@@ -1,14 +1,23 @@
 import * as THREE from "three";
 
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-// import { Noise3D } from "./utils";
 
 const loader = new GLTFLoader();
+
+function SetShadow(root: THREE.Object3D, cast: boolean, receive: boolean) {
+  root.traverse(function (object) {
+    if ((object as THREE.Mesh).isMesh) {
+      object.castShadow = cast;
+      object.receiveShadow = receive;
+    }
+  });
+}
 
 export function LoadGround(scene: THREE.Object3D) {
   loader.load(
     "resources/gltf/ground.glb",
     function (gltf) {
+      SetShadow(gltf.scene, false, true);
       scene.add(gltf.scene);
     },
     function () {},
@@ -19,6 +28,8 @@ export function LoadGround(scene: THREE.Object3D) {
 }
 
 export function LoadHouse(scene: THREE.Object3D) {
+  const house = new THREE.Group();
+  scene.add(house);
   loader.load(
     "resources/gltf/house.glb",
     function (gltf) {
@@ -28,32 +39,39 @@ export function LoadHouse(scene: THREE.Object3D) {
           geometry.setAttribute("color", geometry.attributes.color_1);
         }
       });
-      scene.add(gltf.scene);
+      SetShadow(gltf.scene, true, true);
+      house.add(gltf.scene);
     },
     function () {},
     function (error) {
       console.log("An error happened: " + error);
     },
   );
+  return house;
 }
 
 export function LoadTree(scene: THREE.Object3D) {
+  const tree = new THREE.Group();
+  scene.add(tree);
   loader.load(
     "resources/gltf/tree.glb",
     function (gltf) {
-      scene.add(gltf.scene);
+      SetShadow(gltf.scene, true, true);
+      tree.add(gltf.scene);
     },
     function () {},
     function (error) {
       console.log("An error happened: " + error);
     },
   );
+  return tree;
 }
 
 export function LoadWalk(scene: THREE.Object3D) {
   loader.load(
     "resources/gltf/walk.glb",
     function (gltf) {
+      SetShadow(gltf.scene, true, true);
       scene.add(gltf.scene);
     },
     function () {},
@@ -64,16 +82,20 @@ export function LoadWalk(scene: THREE.Object3D) {
 }
 
 export function LoadWall(scene: THREE.Object3D) {
+  const wall = new THREE.Group();
+  scene.add(wall);
   loader.load(
     "resources/gltf/wall.glb",
     function (gltf) {
-      scene.add(gltf.scene);
+      SetShadow(gltf.scene, true, true);
+      wall.add(gltf.scene);
     },
     function () {},
     function (error) {
       console.log("An error happened: " + error);
     },
   );
+  return wall;
 }
 
 export function LoadMarcel(scene: THREE.Object3D) {
@@ -86,6 +108,7 @@ export function LoadMarcel(scene: THREE.Object3D) {
       gltf.scene.scale.x = 0.5;
       gltf.scene.scale.y = gltf.scene.scale.x;
       gltf.scene.scale.z = gltf.scene.scale.x;
+      SetShadow(gltf.scene, true, true);
       marcel.add(gltf.scene);
       gltf.scene.position.y = -0.5;
     },
@@ -104,6 +127,7 @@ export function LoadBall(parent: THREE.Object3D) {
       gltf.scene.scale.x = 0.22;
       gltf.scene.scale.y = gltf.scene.scale.x;
       gltf.scene.scale.z = gltf.scene.scale.x;
+      SetShadow(gltf.scene, true, true);
       parent.add(gltf.scene);
       // parent.visible = false;
     },

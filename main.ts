@@ -58,6 +58,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 // Environment
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.1;
+renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
@@ -87,16 +88,33 @@ const scene = new THREE.Scene();
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 const sun_light = new THREE.DirectionalLight(0xffffff, 3);
+sun_light.castShadow = true;
+sun_light.position.set( 10, 100, 0 );
+sun_light.target.position.set(0, 0, 0);
+sun_light.shadow.mapSize.width = 2048;
+sun_light.shadow.mapSize.height = 2048;
+sun_light.shadow.camera.near = 0.5;
+sun_light.shadow.camera.far = 200;
+sun_light.shadow.camera.left = -200;
+sun_light.shadow.camera.right = 200;
+sun_light.shadow.camera.top = 200;
+sun_light.shadow.camera.bottom = -200;
+sun_light.shadow.camera.updateProjectionMatrix();
+sun_light.shadow.bias = -0.0001;
+const raycaster = new THREE.Raycaster();
+
 scene.add(sun_light);
 const spot = new THREE.PointLight(0xffffff, 1, 400);
 scene.add(spot);
 
 LoadGround(scene);
-LoadHouse(scene);
-LoadTree(scene);
-LoadWall(scene);
+const house = LoadHouse(scene);
+const tree = LoadTree(scene);
+const wall = LoadWall(scene);
 LoadWalk(scene);
 const marcel = LoadMarcel(scene);
+
+const shadows_maker: Array<THREE.Object3D> = [house, tree, wall];
 
 spot.add(
   new THREE.Mesh(
@@ -518,7 +536,19 @@ function renderLoop(timestamp: number) {
   }
   const day_progress = Math.max(0, Math.min(1, (time - 1) / 60));
   if (playing && !debug_stop && !finished) {
-    UpdateSky(sky_object, day_progress);
+    const sun_position = UpdateSky(sky_object, day_progress);
+    sun_light.position.copy(sun_position.clone().multiplyScalar(100));
+
+    raycaster.set(
+      marcel.position.clone().add(new THREE.Vector3(0, 0, 0)),
+      sun_position.clone().normalize(),
+    );
+    raycaster.far = 100;
+    const intersects = raycaster.intersectObjects(shadows_maker, true);
+    const marcel_is_safe = intersects.length > 0;
+    if (!marcel_is_safe) {
+      console.log("Marcel is burning!");
+    }
 
     if (day_progress == 1) {
       finished = true;

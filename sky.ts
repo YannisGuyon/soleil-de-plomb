@@ -60,6 +60,7 @@ function UpdateSky(sky: Sky, day_progress: number) {
   sun.setFromSphericalCoords(1, phi, theta);
   sky.material.uniforms['sunPosition'].value.copy(sun);
   sky.material.uniforms[ 'time' ].value = performance.now() * 0.001;
+  return sun;
 }
 
 export { CreateSky, UpdateSky }
