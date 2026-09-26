@@ -237,10 +237,8 @@ boxz.position.z = 2;
 let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
-const encore_plus_gros_overlay = document.getElementById(
-  "EncorePlusGrosOverlay",
-)!;
-let encore_plus_gros_overlay_opacity = 0;
+const success_screen = document.getElementById("EndScreen")!;
+let success_screen_opacity = 0;
 let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
@@ -323,27 +321,6 @@ function onDocumentKeyUp(event: KeyboardEvent) {
   }
 }
 
-// function GameLoop(duration: number, factor: number) {
-//   const speed_min = 0.5;
-//   const speed_max = 2.0;
-//   const speed =
-//     speed_min +
-//     Math.min(
-//       speed_max - speed_min,
-//       (speed_max - speed_min) * Math.pow(factor, 2),
-//     );
-//   let step = duration * speed;
-//   while (step > 0) {
-//     // player.Update(Math.min(step, 0.001));
-//     // const position = player.GetAbsolutePosition();
-//     // const displacement =
-//     //   1 - Noise3D(position.clone().multiplyScalar(0.5)) * 0.05;
-//     // position.multiplyScalar(displacement);
-//     // rails.AddPoint(position, player.GetAbsoluteRotation());
-//     // train.AddPoint(position, player.GetAbsoluteRotation());
-//     step -= 0.001;
-//   }
-// }
 function StartPlaying() {
   if (!playing) {
     playing = true;
@@ -524,14 +501,13 @@ function renderLoop(timestamp: number) {
 
     time += duration;
   }
-  const day_progress = Math.max(0, Math.min(1, (time - 1) / 180));
+  const day_progress = Math.max(0, Math.min(1, (time - 1) / 5));
   if (playing && !debug_stop && !finished) {
     UpdateSky(sky_object, day_progress);
-    // GameLoop(duration, day_progress);
 
     if (day_progress == 1) {
       finished = true;
-      encore_plus_gros_overlay.style.display = "block";
+      success_screen.style.display = "block";
       console.log("finished");
     }
     // const damage = pre_post_effect.GetDamage();
@@ -548,10 +524,9 @@ function renderLoop(timestamp: number) {
     // }
   }
 
-  if (finished && encore_plus_gros_overlay_opacity != 1) {
-    encore_plus_gros_overlay_opacity += duration * 3;
-    encore_plus_gros_overlay.style.opacity =
-      encore_plus_gros_overlay_opacity.toString();
+  if (finished && success_screen_opacity != 1) {
+    success_screen_opacity += duration * 3;
+    success_screen.style.opacity = success_screen_opacity.toString();
   }
 
   // const tip_position = player.GetAbsolutePosition();
