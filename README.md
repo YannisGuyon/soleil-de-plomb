@@ -34,3 +34,7 @@ Bonus:
 ## Done
 
 - Model tree -> Robin
+
+## Thanks
+
+- https://github.com/Sean-Bradley/Three.js-TypeScript-Boilerplate

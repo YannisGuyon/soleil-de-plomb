@@ -109,16 +109,10 @@ let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
 
-new HDRLoader()
-  .setPath("resources/IBL/")
-  .load(
-    "IBL.hdr",
-    function (texture: THREE.Texture<unknown, THREE.TextureEventMap> | null) {
-      if (!texture) return;
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = texture;
-    },
-  );
+new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = texture;
+});
 
 // Inputs
 document.addEventListener("keydown", onDocumentKeyDown, false);
