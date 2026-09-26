@@ -1,6 +1,10 @@
 import * as THREE from "three";
+
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
+import { CreateSky, UpdateSky } from './sky';
+
+const debug_mode = false;
 
 function CreateRenderer() {
   let canvas = document.createElement("canvas");
@@ -25,7 +29,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 
 // Environment
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1;
+renderer.toneMappingExposure = 0.1;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(
@@ -63,6 +67,7 @@ spot.add(
 spot.position.x = -20;
 spot.position.y = 20;
 spot.position.z = 20;
+const sky = CreateSky(scene, debug_mode);
 
 const camera_placeholder = new THREE.Object3D();
 camera_placeholder.position.y = 4;
@@ -263,11 +268,12 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop && !finished) {
     time += duration;
   }
-  const factor = Math.max(0, Math.min(1, (time - 1) / 3600));
+  const day_progress = Math.max(0, Math.min(1, (time - 1) / 15));
   if (playing && !debug_stop && !finished) {
-    // GameLoop(duration, factor);
+    UpdateSky(sky, day_progress);
+    // GameLoop(duration, day_progress);
 
-    if (factor == 1) {
+    if (day_progress == 1) {
       finished = true;
       encore_plus_gros_overlay.style.display = "block";
       console.log("finished");
