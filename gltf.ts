@@ -83,7 +83,11 @@ export function LoadMarcel(scene: THREE.Object3D) {
   loader.load(
     "resources/gltf/marcel.glb",
     function (gltf) {
+      gltf.scene.scale.x = 0.5;
+      gltf.scene.scale.y = gltf.scene.scale.x;
+      gltf.scene.scale.z = gltf.scene.scale.x;
       marcel.add(gltf.scene);
+      gltf.scene.position.y = -0.5;
     },
     function () {},
     function (error) {
