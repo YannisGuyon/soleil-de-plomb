@@ -164,9 +164,9 @@ const ballMeshes: Array<
     THREE.Object3DEventMap
   >
 > = [];
-canvas.addEventListener("click", async () => {
+canvas.addEventListener("click", () => {
   if (!document.pointerLockElement) {
-    await canvas.requestPointerLock();
+    canvas.requestPointerLock();
   } else {
     const ballBody = new CANNON.Body({ mass: 1 });
     ballBody.addShape(ballShape);
@@ -246,8 +246,10 @@ const gros_overlay = document.getElementById("GrosOverlay")!;
 const success_screen = document.getElementById("EndScreen")!;
 let success_screen_opacity = 0;
 let gros_overlay_opacity = 1;
-const play_button = document.getElementById("PlayButton")!;
-const replay_button = document.getElementById("ReplayButton")!;
+const play_button = document.getElementById("PlayButton")! as HTMLButtonElement;
+const replay_button = document.getElementById(
+  "ReplayButton",
+)! as HTMLButtonElement;
 
 new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -331,6 +333,7 @@ function StartPlaying() {
   if (!playing) {
     playing = true;
     sound.play();
+    canvas.requestPointerLock();
 
     // Kickstart trails
     // for (let i = 0; i < 1000; ++i) {
@@ -514,7 +517,7 @@ function renderLoop(timestamp: number) {
     if (day_progress == 1) {
       finished = true;
       success_screen.style.display = "block";
-      console.log("finished");
+      document.exitPointerLock();
     }
     // const damage = pre_post_effect.GetDamage();
     // if (damage > 0.0) {
