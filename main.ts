@@ -1,12 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-// import { Planet } from "./planet";
-// import { Player } from "./player";
-// import { Rails } from "./rails";
-// import { Train } from "./train";
-// import { Noise3D } from "./utils";
-// import { PrePostEffect } from "./pre_post_effect";
 
 function CreateRenderer() {
   let canvas = document.createElement("canvas");
@@ -26,9 +20,6 @@ function CreateRenderer() {
   }
 }
 
-// var collision_count = 0;
-// var crate_count = 0;
-
 const renderer: THREE.WebGLRenderer = CreateRenderer();
 renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -43,8 +34,6 @@ const camera = new THREE.PerspectiveCamera(
   /*near=*/ 0.001,
   /*far=*/ 100,
 );
-// const planet_radius = 10;
-// const camera_distance = 5;
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
@@ -59,7 +48,6 @@ audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
 const controls = new OrbitControls(camera, renderer.domElement);
 let debug_camera = false;
 let debug_stop = false;
-let debug_inspect = false;
 
 // Objects
 const scene = new THREE.Scene();
@@ -76,11 +64,9 @@ spot.position.x = -20;
 spot.position.y = 20;
 spot.position.z = 20;
 
-//const camera_placeholder_container = new THREE.Object3D();
 const camera_placeholder = new THREE.Object3D();
 camera_placeholder.position.y = 4;
 camera_placeholder.position.z = 5;
-//camera_placeholder.rotateX(90);
 const camera_representation = new THREE.Mesh(
   new THREE.ConeGeometry(0.2, 1),
   new THREE.MeshStandardMaterial({ color: 0x996666 }),
@@ -91,15 +77,27 @@ scene.add(camera_placeholder);
 
 // Debug cube
 const box = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshStandardMaterial({ color: 0xff0000 }),
 );
 scene.add(box);
 box.position.x = 0;
-box.position.y = 0;
+box.position.y = 2;
 box.position.z = 0;
 
-// const player = new Player(scene, planet_radius);
+camera_placeholder.lookAt(box.position);
+
+// Ground
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry( 100, 100 ),
+  new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.FrontSide } ),
+);
+scene.add(ground);
+ground.position.x = 0;
+ground.position.y = 0;
+ground.position.z = 0;
+ground.rotateOnAxis(new THREE.Vector3(1,0,0),-Math.PI/2);
+
 let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
@@ -110,12 +108,6 @@ let encore_plus_gros_overlay_opacity = 0;
 let gros_overlay_opacity = 1;
 const play_button = document.getElementById("PlayButton")!;
 const replay_button = document.getElementById("ReplayButton")!;
-
-// const planet = new Planet(scene, planet_radius);
-
-// const rails = new Rails(scene);
-
-// const train = new Train(scene);
 
 new RGBELoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -129,12 +121,13 @@ function onDocumentKeyDown(event: KeyboardEvent) {
     return;
   }
   var keyCode = event.key;
-  if (keyCode == "Shift" && debug_inspect) {
+  if (keyCode == "Shift") {
     debug_camera = !debug_camera;
     if (debug_camera) {
       camera.position.x = 0;
-      camera.position.y = 0;
+      camera.position.y = 1;
       camera.position.z = 20;
+      camera.lookAt(box.position);
     }
   } else if (keyCode == "ArrowLeft") {
     // player.StartMoveLeft();
@@ -451,7 +444,7 @@ function renderLoop(timestamp: number) {
   if (playing && !debug_stop) {
     // train.UpdateSmoke(duration, camera.quaternion);
   }
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  // camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   renderer.autoClear = false;
   renderer.clear();
