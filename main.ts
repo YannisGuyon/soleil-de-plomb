@@ -123,7 +123,7 @@ const physics_physics = new CANNON.ContactMaterial(
 // We must add the contact materials to the world
 world.addContactMaterial(physics_physics);
 const cubeShape = new CANNON.Cylinder(0.5, 0.5, 1);
-const cubeBody = new CANNON.Body({ mass: 0.1, material: physicsMaterial });
+const cubeBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
 cubeBody.addShape(cubeShape);
 cubeBody.position.x = marcel.position.x;
 cubeBody.position.y = marcel.position.y;
@@ -141,19 +141,17 @@ treeBody.addShape(treeShape);
 world.addBody(treeBody);
 
 // The shooting balls
-const shootVelocity = 40;
 const ballShape = new CANNON.Sphere(0.2);
 const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 
 // Returns a vector pointing the the diretion the camera is at
 function getShootDirection() {
   const vector = new THREE.Vector3(0, 0, 1);
-  vector.unproject(camera);
-  const ray = new THREE.Ray(
-    marcel.position,
-    vector.sub(marcel.position).normalize(),
-  );
-  return ray.direction;
+  vector.applyEuler(marcel.rotation);
+  vector.normalize();
+  vector.y = 1;
+  vector.normalize();
+  return vector;
 }
 
 const balls: Array<CANNON.Body> = [];
@@ -164,13 +162,17 @@ const ballMeshes: Array<
     THREE.Object3DEventMap
   >
 > = [];
-canvas.addEventListener("click", () => {
+let duration_since_mouse_down = 0;
+canvas.addEventListener("mousedown", () => {
+  duration_since_mouse_down = 0;
+});
+canvas.addEventListener("mouseup", () => {
   if (!document.pointerLockElement) {
     canvas.requestPointerLock();
   } else {
-    const ballBody = new CANNON.Body({ mass: 1 });
+    const ballBody = new CANNON.Body({ mass: 5 });
     ballBody.addShape(ballShape);
-    ballBody.linearDamping = 0.95;
+    // ballBody.linearDamping = 0.95;
     const ballMesh = new THREE.Mesh(
       ballGeometry,
       new THREE.MeshStandardMaterial({ color: 0x000000 }),
@@ -187,10 +189,11 @@ canvas.addEventListener("click", () => {
     LoadBall(ballMesh);
 
     const shootDirection = getShootDirection();
+    const shoot_velocity = 4 + Math.min(20, duration_since_mouse_down * 4);
     ballBody.velocity.set(
-      shootDirection.x * shootVelocity,
-      shootDirection.y * shootVelocity,
-      shootDirection.z * shootVelocity,
+      shootDirection.x * shoot_velocity,
+      shootDirection.y * shoot_velocity,
+      shootDirection.z * shoot_velocity,
     );
 
     // Move the ball outside the player sphere
@@ -397,7 +400,7 @@ function renderLoop(timestamp: number) {
     (timestamp - previous_timestamp) / 1000,
     0.1,
   );
-  const duration = average_duration; // Can also be hardcoded to 0.016.
+  const duration = average_duration;
 
   if (playing && gros_overlay_opacity > 0) {
     gros_overlay_opacity = Math.max(0, gros_overlay_opacity - duration);
@@ -408,6 +411,8 @@ function renderLoop(timestamp: number) {
   }
 
   if (playing && !debug_stop && !finished) {
+    duration_since_mouse_down += duration;
+
     // Update player location
     let movement_forward = marcel.position.clone();
     movement_forward.sub(camera.position);
@@ -433,7 +438,7 @@ function renderLoop(timestamp: number) {
       marcel_pousse.add(movement_right);
     }
     if (marcel_pousse.lengthSq() > 0) {
-      marcel_pousse.setLength(10);
+      marcel_pousse.setLength(50);
       cubeBody.applyForce(
         new CANNON.Vec3(marcel_pousse.x, marcel_pousse.y, marcel_pousse.z),
       );
@@ -456,7 +461,7 @@ function renderLoop(timestamp: number) {
       cubeBody.velocity.z /= 2;
     }
 
-    world.step(duration);
+    world.step(duration * 2);
 
     // world.step(duration);
 
@@ -491,7 +496,7 @@ function renderLoop(timestamp: number) {
     let camera_position = marcel.position
       .clone()
       .add(
-        new THREE.Vector3(0, 0, 10)
+        new THREE.Vector3(0, 0, 6 + tilt * 6)
           .applyAxisAngle(new THREE.Vector3(-1, 0, 0), tilt)
           .applyAxisAngle(new THREE.Vector3(0, 1, 0), pan),
       );
@@ -507,6 +512,7 @@ function renderLoop(timestamp: number) {
     // vec.add(box.position);
     // camera.position.set(vec.x, box.position.y + 5, vec.z);
     camera.lookAt(marcel.position);
+    camera.position.add(new THREE.Vector3(0, 2, 0));
 
     time += duration;
   }
