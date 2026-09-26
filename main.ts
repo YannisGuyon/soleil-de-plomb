@@ -78,7 +78,7 @@ scene.add(camera_placeholder);
 // Debug cube
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
+  new THREE.MeshStandardMaterial({ color: 0x000000 }),
 );
 scene.add(box);
 box.position.x = 0;
@@ -86,6 +86,36 @@ box.position.y = 2;
 box.position.z = 0;
 
 camera_placeholder.lookAt(box.position);
+
+// Debug cube
+const boxx = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
+);
+scene.add(boxx);
+boxx.position.x = 2;
+boxx.position.y = 0;
+boxx.position.z = 0;
+
+// Debug cube
+const boxy = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
+);
+scene.add(boxy);
+boxy.position.x = 0;
+boxy.position.y = 2;
+boxy.position.z = 0;
+
+// Debug cube
+const boxz = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1, 0.1, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0x0000ff }),
+);
+scene.add(boxz);
+boxz.position.x = 0;
+boxz.position.y = 0;
+boxz.position.z = 2;
 
 // Ground
 const ground = new THREE.Mesh(
@@ -114,6 +144,11 @@ new HDRLoader().setPath("resources/IBL/").load("IBL.hdr", function (texture) {
   scene.environment = texture;
 });
 
+let marcel_pousse_up = false;
+let marcel_pousse_down = false;
+let marcel_pousse_left = false;
+let marcel_pousse_right = false;
+
 // Inputs
 document.addEventListener("keydown", onDocumentKeyDown, false);
 function onDocumentKeyDown(event: KeyboardEvent) {
@@ -129,10 +164,26 @@ function onDocumentKeyDown(event: KeyboardEvent) {
       camera.position.z = 20;
       camera.lookAt(box.position);
     }
-  } else if (keyCode == "ArrowLeft") {
-    // player.StartMoveLeft();
-  } else if (keyCode == "ArrowRight") {
-    // player.StartMoveRight();
+  } else if (
+    keyCode == "ArrowUp" ||
+    keyCode == "w" ||
+    keyCode == "W" ||
+    keyCode == "z" ||
+    keyCode == "Z"
+  ) {
+    marcel_pousse_up = true;
+  } else if (keyCode == "ArrowDown" || keyCode == "s" || keyCode == "S") {
+    marcel_pousse_down = true;
+  } else if (
+    keyCode == "ArrowLeft" ||
+    keyCode == "a" ||
+    keyCode == "A" ||
+    keyCode == "q" ||
+    keyCode == "Q"
+  ) {
+    marcel_pousse_left = true;
+  } else if (keyCode == "ArrowRight" || keyCode == "d" || keyCode == "D") {
+    marcel_pousse_right = true;
   } else if (keyCode == " ") {
     debug_stop = !debug_stop;
     document.getElementById("Pause")!.style.display = debug_stop
@@ -147,12 +198,30 @@ function onDocumentKeyUp(event: KeyboardEvent) {
     return;
   }
   var keyCode = event.key;
-  if (keyCode == "ArrowLeft") {
+  if (
+    keyCode == "ArrowUp" ||
+    keyCode == "w" ||
+    keyCode == "W" ||
+    keyCode == "z" ||
+    keyCode == "Z"
+  ) {
     StartPlaying();
-    // player.EndMoveLeft();
-  } else if (keyCode == "ArrowRight") {
+    marcel_pousse_up = false;
+  } else if (keyCode == "ArrowDown" || keyCode == "s" || keyCode == "S") {
     StartPlaying();
-    // player.EndMoveRight();
+    marcel_pousse_down = false;
+  } else if (
+    keyCode == "ArrowLeft" ||
+    keyCode == "a" ||
+    keyCode == "A" ||
+    keyCode == "q" ||
+    keyCode == "Q"
+  ) {
+    StartPlaying();
+    marcel_pousse_left = false;
+  } else if (keyCode == "ArrowRight" || keyCode == "d" || keyCode == "D") {
+    StartPlaying();
+    marcel_pousse_right = false;
   }
 }
 
@@ -255,6 +324,22 @@ function renderLoop(timestamp: number) {
   }
 
   if (playing && !debug_stop && !finished) {
+    let marcel_pousse = new THREE.Vector3();
+    if (marcel_pousse_up) {
+      marcel_pousse.z -= 1;
+    }
+    if (marcel_pousse_down) {
+      marcel_pousse.z += 1;
+    }
+    if (marcel_pousse_left) {
+      marcel_pousse.x -= 1;
+    }
+    if (marcel_pousse_right) {
+      marcel_pousse.x += 1;
+    }
+    marcel_pousse.multiplyScalar(duration * 5);
+    box.position.add(marcel_pousse);
+
     time += duration;
   }
   const factor = Math.max(0, Math.min(1, (time - 1) / 3600));
@@ -431,14 +516,8 @@ function renderLoop(timestamp: number) {
   if (debug_camera) {
     controls.update();
   } else {
-    if (gros_overlay_opacity > 0.95) {
-      camera_placeholder.getWorldPosition(camera.position);
-      camera_placeholder.getWorldQuaternion(camera.quaternion);
-    } else {
-      camera_representation.getWorldPosition(camera.position);
-      camera_representation.getWorldQuaternion(camera.quaternion);
-      camera.rotateX(Math.PI * 0.5);
-    }
+    camera_placeholder.getWorldPosition(camera.position);
+    camera_placeholder.getWorldQuaternion(camera.quaternion);
   }
 
   if (playing && !debug_stop) {
