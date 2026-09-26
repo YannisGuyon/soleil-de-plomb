@@ -501,7 +501,7 @@ function renderLoop(timestamp: number) {
 
     time += duration;
   }
-  const day_progress = Math.max(0, Math.min(1, (time - 1) / 5));
+  const day_progress = Math.max(0, Math.min(1, (time - 1) / 60));
   if (playing && !debug_stop && !finished) {
     UpdateSky(sky_object, day_progress);
 
