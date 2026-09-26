@@ -2,8 +2,8 @@ import * as THREE from "three";
 
 //import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
-import { CreateSky, UpdateSky } from './sky';
-import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk } from './gltf';
+import { CreateSky, UpdateSky } from "./sky";
+import { LoadGround, LoadHouse, LoadTree, LoadWall, LoadWalk } from "./gltf";
 import * as CANNON from "cannon-es";
 
 const debug_mode = false;
@@ -26,11 +26,6 @@ function CreateRenderer(canvas: HTMLCanvasElement) {
   }
 }
 
-canvas.addEventListener("click", async () => {
-  if (!document.pointerLockElement) {
-    await canvas.requestPointerLock();
-  }
-});
 let pan = 0;
 let tilt = 0.2;
 function updatePosition(e: MouseEvent) {
@@ -104,24 +99,98 @@ const box = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ color: 0x000000 }),
 );
 scene.add(box);
-box.position.x = 0;
-box.position.y = 2;
+box.position.x = 5;
+box.position.y = 0.51;
 box.position.z = 0;
 
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0);
-const cubeShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
-const cubeBody = new CANNON.Body({ mass: 1 });
+// Create a slippery material (friction coefficient = 0.0)
+const physicsMaterial = new CANNON.Material("physics");
+const physics_physics = new CANNON.ContactMaterial(
+  physicsMaterial,
+  physicsMaterial,
+  {
+    friction: 0.0,
+    restitution: 0.3,
+  },
+);
+// We must add the contact materials to the world
+world.addContactMaterial(physics_physics);
+const cubeShape = new CANNON.Cylinder(0.5, 0.5, 1);
+const cubeBody = new CANNON.Body({ mass: 0.1, material: physicsMaterial });
 cubeBody.addShape(cubeShape);
 cubeBody.position.x = box.position.x;
 cubeBody.position.y = box.position.y;
 cubeBody.position.z = box.position.z;
+// cubeBody.linearDamping = 1.0;
 world.addBody(cubeBody);
 const planeShape = new CANNON.Plane();
-const planeBody = new CANNON.Body({ mass: 0 });
+const planeBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
 planeBody.addShape(planeShape);
 planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 world.addBody(planeBody);
+const treeShape = new CANNON.Cylinder(1, 1, 10);
+const treeBody = new CANNON.Body({ mass: 0 });
+treeBody.addShape(treeShape);
+world.addBody(treeBody);
+
+// The shooting balls
+const shootVelocity = 40;
+const ballShape = new CANNON.Sphere(0.2);
+const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
+
+// Returns a vector pointing the the diretion the camera is at
+function getShootDirection() {
+  const vector = new THREE.Vector3(0, 0, 1);
+  vector.unproject(camera);
+  const ray = new THREE.Ray(box.position, vector.sub(box.position).normalize());
+  return ray.direction;
+}
+
+const balls: Array<CANNON.Body> = [];
+const ballMeshes: Array<
+  THREE.Mesh<
+    THREE.SphereGeometry,
+    THREE.MeshStandardMaterial,
+    THREE.Object3DEventMap
+  >
+> = [];
+canvas.addEventListener("click", async () => {
+  if (!document.pointerLockElement) {
+    await canvas.requestPointerLock();
+  } else {
+    const ballBody = new CANNON.Body({ mass: 1 });
+    ballBody.addShape(ballShape);
+    ballBody.linearDamping = 0.95;
+    const ballMesh = new THREE.Mesh(
+      ballGeometry,
+      new THREE.MeshStandardMaterial({ color: 0x000000 }),
+    );
+
+    ballMesh.castShadow = true;
+    ballMesh.receiveShadow = true;
+
+    world.addBody(ballBody);
+    scene.add(ballMesh);
+    balls.push(ballBody);
+    ballMeshes.push(ballMesh);
+
+    const shootDirection = getShootDirection();
+    ballBody.velocity.set(
+      shootDirection.x * shootVelocity,
+      shootDirection.y * shootVelocity,
+      shootDirection.z * shootVelocity,
+    );
+
+    // Move the ball outside the player sphere
+    const x = box.position.x + shootDirection.x * (1 * 1.02 + ballShape.radius);
+    const y = box.position.y + shootDirection.y * (1 * 1.02 + ballShape.radius);
+    const z = box.position.z + shootDirection.z * (1 * 1.02 + ballShape.radius);
+    ballBody.position.set(x, y, z);
+    ballMesh.position.copy(ballBody.position);
+  }
+});
 
 camera.position.x = 0;
 camera.position.y = 4;
@@ -386,6 +455,18 @@ function renderLoop(timestamp: number) {
       // cubeBody.applyImpulse(
       //   new CANNON.Vec3(marcel_pousse.x, 10000, marcel_pousse.z),
       // );
+      let velocity = new THREE.Vector3(
+        cubeBody.velocity.x,
+        0,
+        cubeBody.velocity.z,
+      );
+      if (velocity.length() > 5) {
+        cubeBody.velocity.x *= 5 / velocity.length();
+        cubeBody.velocity.z *= 5 / velocity.length();
+      }
+    } else {
+      cubeBody.velocity.x /= 2;
+      cubeBody.velocity.z /= 2;
     }
 
     world.step(duration);
@@ -398,12 +479,26 @@ function renderLoop(timestamp: number) {
       cubeBody.position.y,
       cubeBody.position.z,
     );
-    box.quaternion.set(
-      cubeBody.quaternion.x,
-      cubeBody.quaternion.y,
-      cubeBody.quaternion.z,
-      cubeBody.quaternion.w,
+    // box.quaternion.set(
+    //   cubeBody.quaternion.x,
+    //   cubeBody.quaternion.y,
+    //   cubeBody.quaternion.z,
+    //   cubeBody.quaternion.w,
+    // );
+    // Update ball positions
+    for (let i = 0; i < balls.length; i++) {
+      ballMeshes[i].position.copy(balls[i].position);
+      ballMeshes[i].quaternion.copy(balls[i].quaternion);
+    }
+
+    let velocity = new THREE.Vector3(
+      cubeBody.velocity.x,
+      0,
+      cubeBody.velocity.z,
     );
+    if (velocity.lengthSq() > duration) {
+      box.lookAt(box.position.clone().add(velocity));
+    }
 
     // Update camera location
     let camera_position = box.position
