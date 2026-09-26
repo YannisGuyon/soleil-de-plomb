@@ -89,14 +89,14 @@ camera_placeholder.lookAt(box.position);
 
 // Ground
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry( 100, 100 ),
-  new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.FrontSide } ),
+  new THREE.PlaneGeometry(100, 100),
+  new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.FrontSide }),
 );
 scene.add(ground);
 ground.position.x = 0;
 ground.position.y = 0;
 ground.position.z = 0;
-ground.rotateOnAxis(new THREE.Vector3(1,0,0),-Math.PI/2);
+ground.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 
 let playing = false;
 let finished = false;
