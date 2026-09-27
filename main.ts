@@ -71,12 +71,30 @@ const camera = new THREE.PerspectiveCamera(
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
-const sound = new THREE.Audio(listener);
 const audioLoader = new THREE.AudioLoader();
+const sound_cigale = new THREE.Audio(listener);
 audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
-  sound.setBuffer(buffer);
-  sound.setLoop(true);
-  sound.setVolume(0.2);
+  sound_cigale.setBuffer(buffer);
+  sound_cigale.setLoop(true);
+  sound_cigale.setVolume(0.2);
+});
+const sound_paf = new THREE.Audio(listener);
+audioLoader.load("resources/sound/paf.mp3", function (buffer) {
+  sound_paf.setBuffer(buffer);
+  sound_paf.setLoop(false);
+  sound_paf.setVolume(0.5);
+});
+const sound_fire = new THREE.Audio(listener);
+audioLoader.load("resources/sound/fire.mp3", function (buffer) {
+  sound_fire.setBuffer(buffer);
+  sound_fire.setLoop(false);
+  sound_fire.setVolume(1.0);
+});
+const sound_death = new THREE.Audio(listener);
+audioLoader.load("resources/sound/death.mp3", function (buffer) {
+  sound_death.setBuffer(buffer);
+  sound_death.setLoop(false);
+  sound_death.setVolume(1.0);
 });
 
 let debug_stop = false;
@@ -306,36 +324,6 @@ camera.position.y = 4;
 camera.position.z = 5;
 camera.lookAt(marcel.position);
 
-// Debug cube
-const boxx = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
-);
-scene.add(boxx);
-boxx.position.x = 2;
-boxx.position.y = 0;
-boxx.position.z = 0;
-
-// Debug cube
-const boxy = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
-);
-scene.add(boxy);
-boxy.position.x = 0;
-boxy.position.y = 2;
-boxy.position.z = 0;
-
-// Debug cube
-const boxz = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x0000ff }),
-);
-scene.add(boxz);
-boxz.position.x = 0;
-boxz.position.y = 0;
-boxz.position.z = 2;
-
 let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
@@ -429,7 +417,7 @@ function onDocumentKeyUp(event: KeyboardEvent) {
 function StartPlaying() {
   if (!playing) {
     playing = true;
-    sound.play();
+    sound_cigale.play();
     canvas.requestPointerLock();
   }
 }
@@ -560,6 +548,12 @@ function renderLoop(timestamp: number) {
           .multiplyScalar(1.2);
         let new_death_position = marcel.position.clone().add(vec);
         death.position.set(new_death_position.x, 0, new_death_position.z);
+        sound_paf.position.set(
+          death.position.x,
+          death.position.y,
+          death.position.z,
+        );
+        sound_paf.play();
       }
     }
 
@@ -605,8 +599,10 @@ function renderLoop(timestamp: number) {
     UpdateFire(marcel.position, duration, marcel_is_safe);
     if (marcel_is_safe) {
       marcel_is_unsafe_duration = 0;
+      sound_fire.stop();
     } else {
       marcel_is_unsafe_duration += duration;
+      sound_fire.play();
     }
 
     if (day_progress == 1) {
@@ -624,6 +620,8 @@ function renderLoop(timestamp: number) {
         success_screen.style.display = "block";
         end_message.textContent = "Death!";
         document.exitPointerLock();
+        sound_death.play();
+        sound_fire.stop();
       }
     }
     if (!finished && marcel_is_unsafe_duration > 3) {
