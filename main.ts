@@ -72,12 +72,30 @@ const camera = new THREE.PerspectiveCamera(
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
-const sound = new THREE.Audio(listener);
 const audioLoader = new THREE.AudioLoader();
+const sound_cigale = new THREE.Audio(listener);
 audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
-  sound.setBuffer(buffer);
-  sound.setLoop(true);
-  sound.setVolume(0.2);
+  sound_cigale.setBuffer(buffer);
+  sound_cigale.setLoop(true);
+  sound_cigale.setVolume(0.2);
+});
+const sound_paf = new THREE.Audio(listener);
+audioLoader.load("resources/sound/paf.mp3", function (buffer) {
+  sound_paf.setBuffer(buffer);
+  sound_paf.setLoop(false);
+  sound_paf.setVolume(0.5);
+});
+const sound_fire = new THREE.Audio(listener);
+audioLoader.load("resources/sound/fire.mp3", function (buffer) {
+  sound_fire.setBuffer(buffer);
+  sound_fire.setLoop(false);
+  sound_fire.setVolume(1.0);
+});
+const sound_death = new THREE.Audio(listener);
+audioLoader.load("resources/sound/death.mp3", function (buffer) {
+  sound_death.setBuffer(buffer);
+  sound_death.setLoop(false);
+  sound_death.setVolume(1.0);
 });
 
 let debug_stop = false;
@@ -147,10 +165,87 @@ planeBody.addShape(planeShape);
 planeBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 // planeBody.type = CANNON.BODY_TYPES.STATIC;
 world.addBody(planeBody);
-const treeShape = new CANNON.Cylinder(1, 1, 10);
-const treeBody = new CANNON.Body({ mass: 0 });
-treeBody.addShape(treeShape);
-world.addBody(treeBody);
+
+
+const tree0Shape = new CANNON.Cylinder(1, 1, 10);
+const tree0Body = new CANNON.Body({ mass: 0 });
+tree0Body.addShape(tree0Shape);
+tree0Body.position.x = -24.4418;
+tree0Body.position.y = 0;
+tree0Body.position.z = 21.1647;
+world.addBody(tree0Body);
+
+const tree1Shape = new CANNON.Cylinder(1, 1, 10);
+const tree1Body = new CANNON.Body({ mass: 0 });
+tree1Body.addShape(tree1Shape);
+tree1Body.position.x = -0.042655;
+tree1Body.position.y = 0;
+tree1Body.position.z = 4.84739;
+world.addBody(tree1Body);
+
+const tree2Shape = new CANNON.Cylinder(1, 1, 10);
+const tree2Body = new CANNON.Body({ mass: 0 });
+tree2Body.addShape(tree2Shape);
+tree2Body.position.x = 21.5582;
+tree2Body.position.y = 0;
+tree2Body.position.z = -23.8353;
+world.addBody(tree2Body);
+
+const tree3Shape = new CANNON.Cylinder(1, 1, 10);
+const tree3Body = new CANNON.Body({ mass: 0 });
+tree3Body.addShape(tree3Shape);
+tree3Body.position.x = -21.4418;
+tree3Body.position.y = 0;
+tree3Body.position.z = -37.8353;
+world.addBody(tree3Body);
+
+const rock0Shape = new CANNON.Cylinder(2, 2, 10);
+const rock0Body = new CANNON.Body({ mass: 0 });
+rock0Body.addShape(rock0Shape);
+rock0Body.position.x = -0.042655;
+rock0Body.position.y = 0;
+rock0Body.position.z = 7.75537;
+world.addBody(rock0Body);
+
+const rock1Shape = new CANNON.Cylinder(7, 7, 10);
+const rock1Body = new CANNON.Body({ mass: 0 });
+rock1Body.addShape(rock1Shape);
+rock1Body.position.x = -9.08351;
+rock1Body.position.y = 0;
+rock1Body.position.z = -19.4357;
+world.addBody(rock1Body);
+
+const wall0Shape = new CANNON.Box(new CANNON.Vec3(100, 10, 1));
+const wall0Body = new CANNON.Body({ mass: 0 });
+wall0Body.addShape(wall0Shape);
+wall0Body.position.x = 0;
+wall0Body.position.y = 0;
+wall0Body.position.z = 40.5;
+world.addBody(wall0Body);
+
+const wall1Shape = new CANNON.Box(new CANNON.Vec3(100, 10, 1));
+const wall1Body = new CANNON.Body({ mass: 0 });
+wall1Body.addShape(wall1Shape);
+wall1Body.position.x = 0;
+wall1Body.position.y = 0;
+wall1Body.position.z = -42;
+world.addBody(wall1Body);
+
+const wall2Shape = new CANNON.Box(new CANNON.Vec3(1, 10, 100));
+const wall2Body = new CANNON.Body({ mass: 0 });
+wall2Body.addShape(wall2Shape);
+wall2Body.position.x = 39.5;
+wall2Body.position.y = 0;
+wall2Body.position.z = 0;
+world.addBody(wall2Body);
+
+const wall3Shape = new CANNON.Box(new CANNON.Vec3(1, 10, 100));
+const wall3Body = new CANNON.Body({ mass: 0 });
+wall3Body.addShape(wall3Shape);
+wall3Body.position.x = -41.5;
+wall3Body.position.y = 0;
+wall3Body.position.z = 0;
+world.addBody(wall3Body);
 
 InitFire(scene);
 
@@ -229,36 +324,6 @@ camera.position.x = 0;
 camera.position.y = 4;
 camera.position.z = 5;
 camera.lookAt(marcel.position);
-
-// Debug cube
-const boxx = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
-);
-scene.add(boxx);
-boxx.position.x = 2;
-boxx.position.y = 0;
-boxx.position.z = 0;
-
-// Debug cube
-const boxy = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
-);
-scene.add(boxy);
-boxy.position.x = 0;
-boxy.position.y = 2;
-boxy.position.z = 0;
-
-// Debug cube
-const boxz = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x0000ff }),
-);
-scene.add(boxz);
-boxz.position.x = 0;
-boxz.position.y = 0;
-boxz.position.z = 2;
 
 let playing = false;
 let finished = false;
@@ -353,7 +418,7 @@ function onDocumentKeyUp(event: KeyboardEvent) {
 function StartPlaying() {
   if (!playing) {
     playing = true;
-    sound.play();
+    sound_cigale.play();
     canvas.requestPointerLock();
   }
 }
@@ -487,6 +552,12 @@ function renderLoop(timestamp: number) {
           .multiplyScalar(1.2);
         let new_death_position = marcel.position.clone().add(vec);
         death.position.set(new_death_position.x, 0, new_death_position.z);
+        sound_paf.position.set(
+          death.position.x,
+          death.position.y,
+          death.position.z,
+        );
+        sound_paf.play();
       }
     }
 
@@ -532,8 +603,10 @@ function renderLoop(timestamp: number) {
     UpdateFire(marcel.position, duration, marcel_is_safe);
     if (marcel_is_safe) {
       marcel_is_unsafe_duration = 0;
+      sound_fire.stop();
     } else {
       marcel_is_unsafe_duration += duration;
+      sound_fire.play();
     }
 
     if (day_progress == 1) {
@@ -551,6 +624,8 @@ function renderLoop(timestamp: number) {
         success_screen.style.display = "block";
         end_message.textContent = "Death!";
         document.exitPointerLock();
+        sound_death.play();
+        sound_fire.stop();
       }
     }
     if (!finished && marcel_is_unsafe_duration > 3) {
@@ -571,7 +646,11 @@ function renderLoop(timestamp: number) {
 
   renderer.autoClear = false;
   renderer.clear();
+
+  renderer.toneMappingExposure = 0.1;
   renderer.render(sky_scene, camera);
+  renderer.toneMappingExposure = 0.5;
+
   renderer.render(scene, camera);
 
   previous_timestamp = timestamp;
