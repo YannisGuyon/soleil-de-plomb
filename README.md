@@ -11,29 +11,9 @@ npm install
 npm run dev
 ```
 
-## To do
+### Blender export settings
 
-- Model Marcel Moustache + anim -> Célia
-- Sound to integrate
-
-Bonus:
-- Model violinist + anim
-- Model wall
-- Model bench
-
-## Done
-
-- Model tree
-- Integrate physics engine
-- Keyboard+mouse controller
-- Model balls
-- Model death + anim
-- Model ground
-- Gameplay: what happens when Marcel goes in the sun
-- Gameplay: what happens when you hit death
-- Gameplay: what happens when the night comes
-- Gameplay+graphics: sun stuff and shadows
-- UI: buttons, colors, text, menus
+[](blender_settings.jpeg)
 
 ## Thanks
 
