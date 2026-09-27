@@ -759,7 +759,9 @@ function renderLoop(timestamp: number) {
   renderer.clear();
   // pre_post_effect.PreRender(renderer, camera);
 
+  renderer.toneMappingExposure = 0.1;
   renderer.render(sky_scene, camera);
+  renderer.toneMappingExposure = 0.5;
 
   renderer.render(scene, camera);
   // pre_post_effect.PostRender(renderer, camera);

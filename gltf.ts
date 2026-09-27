@@ -87,7 +87,7 @@ export function LoadWall(scene: THREE.Object3D) {
   loader.load(
     "resources/gltf/wall.glb",
     function (gltf) {
-      SetShadow(gltf.scene, true, true);
+      SetShadow(gltf.scene, true, false);
       wall.add(gltf.scene);
     },
     function () {},
