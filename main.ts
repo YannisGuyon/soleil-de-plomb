@@ -71,12 +71,30 @@ const camera = new THREE.PerspectiveCamera(
 
 const listener = new THREE.AudioListener();
 camera.add(listener);
-const sound = new THREE.Audio(listener);
 const audioLoader = new THREE.AudioLoader();
+const sound_cigale = new THREE.Audio(listener);
 audioLoader.load("resources/sound/cigale.mp3", function (buffer) {
-  sound.setBuffer(buffer);
-  sound.setLoop(true);
-  sound.setVolume(0.2);
+  sound_cigale.setBuffer(buffer);
+  sound_cigale.setLoop(true);
+  sound_cigale.setVolume(0.2);
+});
+const sound_paf = new THREE.Audio(listener);
+audioLoader.load("resources/sound/paf.mp3", function (buffer) {
+  sound_paf.setBuffer(buffer);
+  sound_paf.setLoop(false);
+  sound_paf.setVolume(0.5);
+});
+const sound_fire = new THREE.Audio(listener);
+audioLoader.load("resources/sound/fire.mp3", function (buffer) {
+  sound_fire.setBuffer(buffer);
+  sound_fire.setLoop(false);
+  sound_fire.setVolume(1.0);
+});
+const sound_death = new THREE.Audio(listener);
+audioLoader.load("resources/sound/death.mp3", function (buffer) {
+  sound_death.setBuffer(buffer);
+  sound_death.setLoop(false);
+  sound_death.setVolume(1.0);
 });
 
 let debug_stop = false;
@@ -352,7 +370,7 @@ function onDocumentKeyUp(event: KeyboardEvent) {
 function StartPlaying() {
   if (!playing) {
     playing = true;
-    sound.play();
+    sound_cigale.play();
     canvas.requestPointerLock();
   }
 }
@@ -483,6 +501,12 @@ function renderLoop(timestamp: number) {
           .multiplyScalar(1.2);
         let new_death_position = marcel.position.clone().add(vec);
         death.position.set(new_death_position.x, 0, new_death_position.z);
+        sound_paf.position.set(
+          death.position.x,
+          death.position.y,
+          death.position.z,
+        );
+        sound_paf.play();
       }
     }
 
@@ -528,8 +552,10 @@ function renderLoop(timestamp: number) {
     UpdateFire(marcel.position, duration, marcel_is_safe);
     if (marcel_is_safe) {
       marcel_is_unsafe_duration = 0;
+      sound_fire.stop();
     } else {
       marcel_is_unsafe_duration += duration;
+      sound_fire.play();
     }
 
     if (day_progress == 1) {
@@ -547,6 +573,8 @@ function renderLoop(timestamp: number) {
         success_screen.style.display = "block";
         end_message.textContent = "Death!";
         document.exitPointerLock();
+        sound_death.play();
+        sound_fire.stop();
       }
     }
     if (!finished && marcel_is_unsafe_duration > 3) {
