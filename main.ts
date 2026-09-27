@@ -247,36 +247,6 @@ camera.position.y = 4;
 camera.position.z = 5;
 camera.lookAt(marcel.position);
 
-// Debug cube
-const boxx = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0xff0000 }),
-);
-scene.add(boxx);
-boxx.position.x = 2;
-boxx.position.y = 0;
-boxx.position.z = 0;
-
-// Debug cube
-const boxy = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
-);
-scene.add(boxy);
-boxy.position.x = 0;
-boxy.position.y = 2;
-boxy.position.z = 0;
-
-// Debug cube
-const boxz = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1, 0.1, 0.1),
-  new THREE.MeshStandardMaterial({ color: 0x0000ff }),
-);
-scene.add(boxz);
-boxz.position.x = 0;
-boxz.position.y = 0;
-boxz.position.z = 2;
-
 let playing = false;
 let finished = false;
 const gros_overlay = document.getElementById("GrosOverlay")!;
