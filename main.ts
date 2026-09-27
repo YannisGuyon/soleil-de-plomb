@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
-//import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { CreateSky, UpdateSky } from "./sky";
+import { InitFire, UpdateFire } from "./fire";
 import {
   LoadGround,
   LoadHouse,
@@ -90,7 +90,7 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 const sun_light = new THREE.DirectionalLight(0xffffff, 3);
 sun_light.castShadow = true;
-sun_light.position.set( 10, 100, 0 );
+sun_light.position.set(10, 100, 0);
 sun_light.target.position.set(0, 0, 0);
 sun_light.shadow.mapSize.width = 2048;
 sun_light.shadow.mapSize.height = 2048;
@@ -150,6 +150,8 @@ const treeShape = new CANNON.Cylinder(1, 1, 10);
 const treeBody = new CANNON.Body({ mass: 0 });
 treeBody.addShape(treeShape);
 world.addBody(treeBody);
+
+InitFire(scene);
 
 // The shooting balls
 const ballShape = new CANNON.Cylinder(0.2, 0.2, 0.4);
@@ -352,28 +354,12 @@ function StartPlaying() {
     playing = true;
     sound.play();
     canvas.requestPointerLock();
-
-    // Kickstart trails
-    // for (let i = 0; i < 1000; ++i) {
-    //   player.Update(0.001);
-    //   const position = player.GetAbsolutePosition();
-    //   const displacement =
-    //     1 - Noise3D(position.clone().multiplyScalar(0.5)) * 0.05;
-    //   position.multiplyScalar(displacement);
-    //   rails.AddPoint(position, player.GetAbsoluteRotation());
-    //   train.AddPoint(position, player.GetAbsoluteRotation());
-    //   if (rails.IsLoaded()) {
-    //     break;
-    //   }
-    // }
   }
 }
 play_button.addEventListener("click", StartPlaying);
 replay_button.addEventListener("click", () => {
   location.reload();
 });
-
-// var pre_post_effect = new PrePostEffect();
 
 // Events
 window.addEventListener("resize", onWindowResize, false);
@@ -384,26 +370,10 @@ function onWindowResize() {
   renderer.render(scene, camera);
 }
 
-// function KeepWithin(
-//   object: THREE.Object3D,
-//   target: THREE.Vector3,
-//   max_distance: number,
-//   fixed_elevation: number,
-// ) {
-//   const object_to_target = target.clone().sub(object.position);
-//   if (object_to_target.length() > max_distance) {
-//     object_to_target.setLength(max_distance);
-//     const new_object_position = target.clone().sub(object_to_target);
-//     new_object_position.setLength(fixed_elevation);
-//     object.position.x = new_object_position.x;
-//     object.position.y = new_object_position.y;
-//     object.position.z = new_object_position.z;
-//   }
-// }
-
 let previous_timestamp: null | number = null;
 let time = 0;
 let average_duration = 0.016;
+let marcel_is_unsafe_duration = 0;
 function renderLoop(timestamp: number) {
   requestAnimationFrame(renderLoop);
 
@@ -465,11 +435,6 @@ function renderLoop(timestamp: number) {
       cubeBody.applyForce(
         new CANNON.Vec3(marcel_pousse.x, marcel_pousse.y, marcel_pousse.z),
       );
-      // box.position.add(marcel_pousse);
-      // box.lookAt(box.position.clone().add(marcel_pousse));
-      // cubeBody.applyImpulse(
-      //   new CANNON.Vec3(marcel_pousse.x, 10000, marcel_pousse.z),
-      // );
       let velocity = new THREE.Vector3(
         cubeBody.velocity.x,
         0,
@@ -485,8 +450,6 @@ function renderLoop(timestamp: number) {
     }
 
     world.step(duration * 2);
-
-    // world.step(duration);
 
     // Copy coordinates from Cannon to Three.js
     marcel.position.set(
@@ -545,12 +508,6 @@ function renderLoop(timestamp: number) {
       camera_position.y,
       camera_position.z,
     );
-    // let vec = camera.position;
-    // vec.sub(box.position);
-    // vec.y = 0;
-    // vec.setLength(10);
-    // vec.add(box.position);
-    // camera.position.set(vec.x, box.position.y + 5, vec.z);
     camera.lookAt(marcel.position);
     camera.position.add(new THREE.Vector3(0, 2, 0));
 
@@ -568,8 +525,11 @@ function renderLoop(timestamp: number) {
     raycaster.far = 100;
     const intersects = raycaster.intersectObjects(shadows_maker, true);
     const marcel_is_safe = intersects.length > 0;
-    if (!marcel_is_safe) {
-      console.log("Marcel is burning!");
+    UpdateFire(marcel.position, duration, marcel_is_safe);
+    if (marcel_is_safe) {
+      marcel_is_unsafe_duration = 0;
+    } else {
+      marcel_is_unsafe_duration += duration;
     }
 
     if (day_progress == 1) {
@@ -589,18 +549,12 @@ function renderLoop(timestamp: number) {
         document.exitPointerLock();
       }
     }
-    // const damage = pre_post_effect.GetDamage();
-    // if (damage > 0.0) {
-    //   pre_post_effect.SetDamage(damage - 0.01);
-    // } else {
-    //   pre_post_effect.SetDamage(0.0);
-    // }
-    // const score = pre_post_effect.GetScore();
-    // if (score > 0.0) {
-    //   pre_post_effect.SetScore(score - 0.01);
-    // } else {
-    //   pre_post_effect.SetScore(0.0);
-    // }
+    if (!finished && marcel_is_unsafe_duration > 3) {
+      finished = true;
+      success_screen.style.display = "block";
+      end_message.textContent = "Burnt!";
+      document.exitPointerLock();
+    }
   }
 
   if (finished && success_screen_opacity != 1) {
@@ -608,163 +562,17 @@ function renderLoop(timestamp: number) {
     success_screen.style.opacity = success_screen_opacity.toString();
   }
 
-  // const tip_position = player.GetAbsolutePosition();
-  // if (finished) {
-  //   train.LaunchIntoSpace();
-  // } else {
-  //   train.SetPosition(tip_position);
-  // }
-  // if (playing && !debug_stop) {
-  //   train.SpawnSmoke();
-  // }
-
-  // const ideal_camera_position = player.GetIdealCameraPosition(camera_distance);
-  // const ideal_camera_rotation = player.GetAbsoluteRotation();
-
-  if (gros_overlay_opacity > 0.95) {
-    // camera_placeholder.position.x = ideal_camera_position.x;
-    // camera_placeholder.position.y = ideal_camera_position.y;
-    // camera_placeholder.position.z = ideal_camera_position.z;
-    // camera_placeholder.setRotationFromQuaternion(ideal_camera_rotation);
-  } else {
-    // const ideal_to_tip = tip_position.clone().sub(ideal_camera_position);
-    // // const camera_to_tip = tip_position.clone().sub(camera_placeholder.position);
-    // // camera_to_tip.setLength(ideal_to_tip.length());
-    // // const new_camera_position = tip_position.clone().sub(camera_to_tip);
-    // // new_camera_position.setLength(ideal_camera_position.length());
-    // // camera_placeholder.position.x = new_camera_position.x;
-    // // camera_placeholder.position.y = new_camera_position.y;
-    // // camera_placeholder.position.z = new_camera_position.z;
-    // KeepWithin(
-    //   camera_placeholder,
-    //   tip_position,
-    //   ideal_to_tip.length(),
-    //   ideal_camera_position.length(),
-    // );
-    // KeepWithin(
-    //   camera_placeholder,
-    //   ideal_camera_position,
-    //   ideal_to_tip.length() * 0.8,
-    //   ideal_camera_position.length(),
-    // );
-    // camera_placeholder.setRotationFromQuaternion(ideal_camera_rotation);
-    // camera_placeholder.setRotationFromQuaternion(
-    //   new THREE.Quaternion().slerpQuaternions(
-    //     camera_placeholder.quaternion,
-    //     ideal_camera_rotation,
-    //     lerp_factor
-    //   )
-    // );
-    // const new_camera_to_tip = tip_position
-    //   .clone()
-    //   .sub(camera_placeholder.position);
-    // camera_placeholder.setRotationFromQuaternion(
-    //   new THREE.Quaternion().setFromUnitVectors(
-    //     new_camera_to_tip.normalize(),
-    //     camera_placeholder.position.clone().normalize()
-    //   )
-    // );
-    // const new_camera_to_tip = tip_position
-    //   .clone()
-    //   .sub(camera_placeholder.position);
-    // const quat = new THREE.Quaternion();
-    // new_camera_to_tip.normalize();
-    // const euler = new THREE.Euler(new_camera_to_tip.x,
-    //   new_camera_to_tip.y, new_camera_to_tip.z);
-    // quat.setFromEuler(euler);
-    // const new_camera_to_tip = tip_position
-    //   .clone()
-    //   .sub(camera_placeholder.position);
-    // new_camera_to_tip.normalize();
-    // camera_placeholder.setRotationFromQuaternion(
-    //   new THREE.Quaternion().setFromUnitVectors(
-    //     camera_placeholder.position.clone().normalize(),new_camera_to_tip
-    //   )
-    // );
-    // camera_placeholder.position.x = 0;
-    // camera_placeholder.position.y = 0;
-    // camera_placeholder.position.z = -12;
-    // const rotationMatrix = new THREE.Matrix4();
-    // rotationMatrix.lookAt(
-    //   tip_position,
-    //   camera_placeholder.position,
-    //   camera_placeholder.position.clone().normalize().negate(),
-    // );
-    // camera_placeholder.setRotationFromQuaternion(
-    //   new THREE.Quaternion().setFromRotationMatrix(rotationMatrix),
-    // );
-  }
-  // camera_placeholder.position.lerpVectors(
-  //   camera_placeholder.position,
-  //   ideal_camera_position,
-  //   lerp_factor
-  // );
-  // const ideal_to_tip = player.GetAbsolutePosition().sub(ideal_camera_position);
-  // const camera_to_tip = player
-  //   .GetAbsolutePosition()
-  //   .sub(camera_placeholder.position);
-  // camera_placeholder.position
-  //   .add(camera_to_tip)
-  //   .sub(camera_to_tip.clone().setLength(ideal_to_tip.length()));
-
-  // camera_placeholder.position.lerpVectors(
-  //   camera_placeholder.position,
-  //   ideal_camera_position,
-  //   lerp_factor
-  // );
-  // camera_placeholder.setRotationFromQuaternion(
-  //   new THREE.Quaternion().slerpQuaternions(
-  //     camera_placeholder.quaternion,
-  //     ideal_camera_rotation,
-  //     lerp_factor
-  //   )
-  // );
-  // planet.ReduceBuildings(camera_placeholder.position);
-
-  if (playing && !finished) {
-    // var is_collide = planet.CheckCollision(
-    //   train.GetAbsolutePosition(),
-    //   train.GetAbsoluteDirection().negate(),
-    //   1 + factor,
-    // );
-    // if (is_collide) {
-    //   pre_post_effect.SetDamage(0.6);
-    //   collision_count++;
-    //   document.getElementById("Damage")!.textContent =
-    //     "Damage: " + collision_count.toString();
-    // }
-    // var is_collide_crate = planet.CheckCollisionCrate(
-    //   train.GetAbsolutePosition(),
-    // );
-    // if (is_collide_crate) {
-    //   pre_post_effect.SetScore(0.6);
-    //   crate_count++;
-    //   document.getElementById("Score")!.textContent =
-    //     "Score: " + crate_count.toString();
-    // }
-  }
-  if (!debug_stop) {
-    // planet.UpdateHit(duration);
-  }
-
   document.getElementById("Fps")!.textContent =
     (1.0 / average_duration).toFixed(1).toString() + " fps";
 
-  if (playing && !debug_stop) {
-    // train.UpdateSmoke(duration, camera.quaternion);
-  }
-  // camera.lookAt(new THREE.Vector3(0, 0, 0));
-
   renderer.autoClear = false;
   renderer.clear();
-  // pre_post_effect.PreRender(renderer, camera);
 
   renderer.toneMappingExposure = 0.1;
   renderer.render(sky_scene, camera);
   renderer.toneMappingExposure = 0.5;
 
   renderer.render(scene, camera);
-  // pre_post_effect.PostRender(renderer, camera);
 
   previous_timestamp = timestamp;
 }
