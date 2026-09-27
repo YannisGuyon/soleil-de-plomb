@@ -12,6 +12,7 @@ import {
   LoadWalk,
   LoadMarcel,
   LoadDeath,
+  renderMarcelAnimation,
 } from "./gltf";
 import * as CANNON from "cannon-es";
 
@@ -430,7 +431,9 @@ function renderLoop(timestamp: number) {
     if (marcel_pousse_right) {
       marcel_pousse.add(movement_right);
     }
+    
     if (marcel_pousse.lengthSq() > 0) {
+      renderMarcelAnimation(duration, true);
       marcel_pousse.setLength(50);
       cubeBody.applyForce(
         new CANNON.Vec3(marcel_pousse.x, marcel_pousse.y, marcel_pousse.z),
@@ -447,6 +450,7 @@ function renderLoop(timestamp: number) {
     } else {
       cubeBody.velocity.x /= 2;
       cubeBody.velocity.z /= 2;
+      renderMarcelAnimation(duration, false);
     }
 
     world.step(duration * 2);

@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const loader = new GLTFLoader();
+let idleAction : THREE.AnimationAction, walkAction: THREE.AnimationAction, mixer: THREE.AnimationMixer;
 
 function SetShadow(root: THREE.Object3D, cast: boolean, receive: boolean) {
   root.traverse(function (object) {
@@ -111,6 +112,15 @@ export function LoadMarcel(scene: THREE.Object3D) {
       SetShadow(gltf.scene, true, true);
       marcel.add(gltf.scene);
       gltf.scene.position.y = -0.5;
+
+      const animations = gltf.animations;
+
+      mixer = new THREE.AnimationMixer( marcel );
+
+      idleAction = mixer.clipAction( animations[ 0 ] );
+      walkAction = mixer.clipAction( animations[ 1 ] );
+
+      idleAction.play();
     },
     function () {},
     function (error) {
@@ -118,6 +128,17 @@ export function LoadMarcel(scene: THREE.Object3D) {
     },
   );
   return marcel;
+}
+
+export function renderMarcelAnimation(timeStamp:number, walking: boolean){
+  if(walking && !walkAction.isRunning()){
+    idleAction.stop();
+    walkAction.play();
+  } else if (!walking && !idleAction.isRunning()) {
+    walkAction.stop();
+    idleAction.play();
+  }
+  if(mixer) (mixer as THREE.AnimationMixer).update(timeStamp);
 }
 
 export function LoadDeath(scene: THREE.Object3D) {
