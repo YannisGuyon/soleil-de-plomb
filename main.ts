@@ -498,12 +498,8 @@ function renderLoop(timestamp: number) {
     }
     
     if (marcel_pousse.lengthSq() > 0) {
-<<<<<<< Updated upstream
       renderMarcelAnimation(duration, true);
-      marcel_pousse.setLength(50);
-=======
       marcel_pousse.setLength(30);
->>>>>>> Stashed changes
       cubeBody.applyForce(
         new CANNON.Vec3(marcel_pousse.x, marcel_pousse.y, marcel_pousse.z),
       );
